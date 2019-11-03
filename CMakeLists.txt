@@ -1,7 +1,9 @@
-cmake_minimum_required(VERSION 3.8.0 FATAL_ERROR)
-project(hashing_algorithms VERSION 0.1.0 LANGUAGES CXX CUDA)
+cmake_minimum_required(VERSION 3.15)
+project(inynierka LANGUAGES CXX CUDA)
 
-add_executable(hashing_algorithms add.cu)
+set(CMAKE_CXX_STANDARD 14)
 
-set(CPACK_PROJECT_NAME ${PROJECT_NAME})
-set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
+add_executable(main add.cu dummy.cpp)
+
+#clion cuda hack
+include_directories(/opt/cuda/include)

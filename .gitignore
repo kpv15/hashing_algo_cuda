@@ -1,2 +1,4 @@
-build/
-.vscode/
+/cuda_clion_hack/
+/dummy.cpp
+/cmake-build-debug/
+/.idea/
