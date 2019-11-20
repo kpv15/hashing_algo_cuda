@@ -9,7 +9,12 @@
 #include <string>
 
 class IHashingAlgorithm {
+public:
+    virtual void setDefaultWordLength(unsigned int) = 0;
+
     virtual std::string calculateHashSum(std::string word) = 0;
+
+    virtual char *calculateHashSum(const char *word) = 0;
 };
 
 
