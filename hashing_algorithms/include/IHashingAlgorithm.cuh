@@ -14,7 +14,10 @@ public:
 
     virtual std::string calculateHashSum(std::string word) = 0;
 
-    virtual char *calculateHashSum(const char *word) = 0;
+    virtual unsigned char *calculateHashSum(const char *word) = 0;
+
+    virtual unsigned int getDigestLength() = 0;
+
 };
 
 

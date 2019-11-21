@@ -10,7 +10,7 @@
 class MD5 : public IHashingAlgorithm {
     std::string calculateHashSum(std::string word) override;
 
-    char *calculateHashSum(const char *word) override;
+    unsigned char *calculateHashSum(const char *word) override;
 
 };
 

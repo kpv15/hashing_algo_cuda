@@ -8,6 +8,6 @@ std::string MD5::calculateHashSum(std::string word) {
     return std::string();
 }
 
-char *MD5::calculateHashSum(const char *word) {
+unsigned char *MD5::calculateHashSum(const char *word) {
     return nullptr;
 }
