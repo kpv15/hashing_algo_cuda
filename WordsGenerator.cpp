@@ -15,9 +15,9 @@ void WordsGenerator::generate(unsigned int lenght, unsigned int n) {
     words_buffer = new std::vector<std::string *>();
     this->lenght = lenght;
 
-    for (int i = 0; i < n; ++i) {
-        std::string *word = new std::string();
-        for (int j = 0; j < lenght; ++j)
+    for (unsigned int i = 0; i < n; ++i) {
+        auto *word = new std::string();
+        for (unsigned int j = 0; j < lenght; ++j)
             *word += alphanum[rand() % (sizeof(alphanum) - 1)];
         words_buffer->emplace_back(word);
     }
@@ -38,7 +38,7 @@ char **WordsGenerator::getWordsBufferAsCharArray() {
     if (words_buffer != nullptr) {
         unsigned int n = words_buffer->size();
         toReturn = new char *[n];
-        for (int i = 0; i < n; ++i) {
+        for (unsigned int i = 0; i < n; ++i) {
             toReturn[i] = new char[lenght];
             std::string *word = (*words_buffer)[i];
             strcpy(toReturn[i], word->c_str());
@@ -51,8 +51,7 @@ char **WordsGenerator::getWordsBufferAsCharArray() {
 void WordsGenerator::freeBuffer() {
     if (words_buffer != nullptr) {
         for (std::string *word: *words_buffer)
-            if (word != nullptr)
-                delete word;
+            delete word;
         delete[] words_buffer;
     }
 }

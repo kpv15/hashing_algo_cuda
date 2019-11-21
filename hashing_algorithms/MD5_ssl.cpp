@@ -13,7 +13,7 @@ std::string MD5_ssl::calculateHashSum(std::string word) {
 }
 
 unsigned char *MD5_ssl::calculateHashSum(const char *word) {
-    unsigned char *result = new unsigned char[MD5_DIGEST_LENGTH];
+    auto *result = new unsigned char[MD5_DIGEST_LENGTH];
     MD5(reinterpret_cast<const unsigned char *>(word), defaultWordLength, result);
 
     return result;
