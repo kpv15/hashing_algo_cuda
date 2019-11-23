@@ -12,20 +12,20 @@
 class HexParser {
     std::ostream *output;
     unsigned int digestLength;
-    std::string *word;
+    unsigned char *word;
 
 public:
     HexParser(unsigned int digestLength) : digestLength(digestLength) {}
 
     inline void print() {
-        for (unsigned char c: *word)
+        for (unsigned int i = 0; i < digestLength; i++)
             *output << std::hex
                     << std::setw(2)
                     << std::setfill('0')
-                    << static_cast<unsigned int>(c);
+                    << static_cast<unsigned int>(word[i]);
     }
 
-    HexParser &operator()(std::string *word) {
+    HexParser &operator()(unsigned char *word) {
         this->word = word;
         return *this;
     }

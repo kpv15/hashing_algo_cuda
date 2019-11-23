@@ -23,18 +23,6 @@ void MD5_ssl::setDefaultWordLength(unsigned int defaultLength) {
     defaultWordLength = defaultLength;
 }
 
-void MD5_ssl::printDigest(const char *digest) {
-    for (int i = 0; i < 16; i++)
-        printf("%02x", digest[i]);
-}
-
-char *MD5_ssl::toHex(const char *digest) {
-    char *hexToReturn = new char[MD5_DIGEST_LENGTH * 2];
-    for (int i = 0; i < 16; i++)
-        sprintf(&hexToReturn[i * 2], "%02x", digest[i]);
-    return hexToReturn;
-}
-
 unsigned int MD5_ssl::getDigestLength() {
     return MD5_DIGEST_LENGTH;
 }

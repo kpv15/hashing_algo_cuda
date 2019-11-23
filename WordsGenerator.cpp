@@ -52,6 +52,7 @@ void WordsGenerator::freeBuffer() {
     if (words_buffer != nullptr) {
         for (std::string *word: *words_buffer)
             delete word;
-        delete[] words_buffer;
+        delete words_buffer;
+        words_buffer = nullptr;
     }
 }

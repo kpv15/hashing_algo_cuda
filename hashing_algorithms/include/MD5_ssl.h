@@ -12,10 +12,10 @@ class MD5_ssl : public IHashingAlgorithm {
 
     unsigned int defaultWordLength = 0;
 
-    static char *toHex(const char *digest);
-
 public:
-    MD5_ssl(unsigned int defaultWordLength) : defaultWordLength(defaultWordLength) {};
+    MD5_ssl(unsigned int defaultWordLength) : defaultWordLength(defaultWordLength) {}
+
+    MD5_ssl() : MD5_ssl(0) {};
 
     void setDefaultWordLength(unsigned int) override;
 
@@ -24,8 +24,6 @@ public:
     unsigned char *calculateHashSum(const char *word) override;
 
     unsigned int getDigestLength() override;
-
-    static void printDigest(const char *digest);
 
 };
 
