@@ -13,14 +13,17 @@ int main(void) {
     wordsGenerator.generate(wordLenght, 1);
     std::vector<std::string *> *randStrings = wordsGenerator.getWordsBuffer();
     IHashingAlgorithm *algorithm = new MD5_ssl(wordLenght);
-    HexParser md5Parser(std::cout, algorithm->getDigestLength());
+    HexParser md5Parser(algorithm->getDigestLength());
 
     for (std::string *word: *randStrings) {
         std::cout << *word << "\t";
         std::string digest = algorithm->calculateHashSum(*word);
-        md5Parser.print(digest);
-        std::cout << "\n";
+        std::cout << md5Parser(&digest) << "\n";
     }
+
+    for (auto word:*randStrings)
+        delete word;
+    delete randStrings;
 
 
     return 0;

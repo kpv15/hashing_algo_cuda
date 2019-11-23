@@ -10,19 +10,34 @@
 
 
 class HexParser {
-    std::ostream &output;
+    std::ostream *output;
     unsigned int digestLength;
-public:
-    HexParser(std::ostream &output, unsigned int digestLength) : output(output), digestLength(digestLength) {}
+    std::string *word;
 
-    inline void print(const std::string &digest) {
-        for (unsigned char c: digest)
-            output << std::hex
-                   << std::setw(2)
-                   << std::setfill('0')
-                   << static_cast<unsigned int>(c);
+public:
+    HexParser(unsigned int digestLength) : digestLength(digestLength) {}
+
+    inline void print() {
+        for (unsigned char c: *word)
+            *output << std::hex
+                    << std::setw(2)
+                    << std::setfill('0')
+                    << static_cast<unsigned int>(c);
     }
+
+    HexParser &operator()(std::string *word) {
+        this->word = word;
+        return *this;
+    }
+
+    friend std::ostream &operator<<(std::ostream &out, HexParser &hexParser);
+
 };
 
+std::ostream &operator<<(std::ostream &out, HexParser &hexParser) {
+    hexParser.output = &out;
+    hexParser.print();
+    return out;
+}
 
 #endif //INYNIERKA_HEXPARSER_H

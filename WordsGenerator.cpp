@@ -36,9 +36,9 @@ WordsGenerator::~WordsGenerator() {
 char **WordsGenerator::getWordsBufferAsCharArray() {
     char **toReturn = nullptr;
     if (words_buffer != nullptr) {
-        unsigned int n = words_buffer->size();
+        unsigned long n = words_buffer->size();
         toReturn = new char *[n];
-        for (unsigned int i = 0; i < n; ++i) {
+        for (unsigned long i = 0; i < n; ++i) {
             toReturn[i] = new char[lenght];
             std::string *word = (*words_buffer)[i];
             strcpy(toReturn[i], word->c_str());
