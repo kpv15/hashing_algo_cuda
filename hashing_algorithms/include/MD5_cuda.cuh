@@ -7,7 +7,7 @@
 
 #include "IHashingAlgorithm.cuh"
 
-class MD5 : public IHashingAlgorithm {
+class MD5_cuda : public IHashingAlgorithm {
     std::string calculateHashSum(std::string word) override;
 
     unsigned char *calculateHashSum(const char *word) override;

@@ -9,8 +9,8 @@ add_executable(main
         digestGenerator.cu
         dummy.cpp
         hashing_algorithms/include/IHashingAlgorithm.cuh
-        hashing_algorithms/MD5.cu
-        hashing_algorithms/include/MD5.cuh
+        hashing_algorithms/MD5_cuda.cu
+        hashing_algorithms/include/MD5_cuda.cuh
         WordsGenerator.cpp
         include/WordsGenerator.h
         hashing_algorithms/MD5_ssl.cpp
