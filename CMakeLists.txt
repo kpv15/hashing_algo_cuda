@@ -18,7 +18,8 @@ add_executable(main
         include/HexParser.h
         hashing_algorithms/MD5sslDigestGenerator.cpp
         hashing_algorithms/include/MD5sslDigestGenerator.h
-        hashing_algorithms/include/HashingArgorithms.h)
+        hashing_algorithms/include/HashingArgorithms.h
+        hashing_algorithms/include/IGenerator.h)
 target_link_libraries(main OpenSSL::SSL)
 
 #clion cuda hack

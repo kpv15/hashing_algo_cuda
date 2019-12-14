@@ -7,12 +7,13 @@
 
 
 #include "MD5_ssl.h"
+#include "IGenerator.h"
 
-class MD5sslDigestGenerator {
+class MD5sslDigestGenerator : public IGenerator {
     char **words = nullptr;
     unsigned char **digest = nullptr;
-    unsigned int n;
-    unsigned int length;
+    unsigned int n = 0;
+    unsigned int length = 0;
     unsigned int n_to_gen = 0;
     unsigned int length_to_gen = 0;
     MD5_ssl md5Ssl;
@@ -20,19 +21,17 @@ class MD5sslDigestGenerator {
     void initDigest();
 
 public:
-    void setN(unsigned int n);
+    void setN(unsigned int n) override;
 
-    void setLength(unsigned int length);
+    void setLength(unsigned int length) override;
 
-    unsigned char **getDigits();
+    unsigned char **getDigits() override;
 
-    void setWords(char **words);
+    void setWords(char **words) override;
 
-    MD5sslDigestGenerator(char **words, unsigned int n, unsigned int length);
+    void generate() override;
 
-    void generate();
-
-    unsigned int getDigestLength();
+    unsigned int getDigestLength() override;
 };
 
 

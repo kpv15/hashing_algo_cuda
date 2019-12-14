@@ -15,19 +15,14 @@ unsigned char **MD5sslDigestGenerator::getDigits() {
     return toReturn;
 }
 
-void MD5sslDigestGenerator::setN(unsigned int n) {
+void MD5sslDigestGenerator::setN(const unsigned int n) {
     MD5sslDigestGenerator::n_to_gen = n;
 }
 
 
-void MD5sslDigestGenerator::setLength(unsigned int length) {
+void MD5sslDigestGenerator::setLength(const unsigned int length) {
     MD5sslDigestGenerator::length_to_gen = length;
 }
-
-MD5sslDigestGenerator::MD5sslDigestGenerator(char **words, unsigned int n, unsigned int length) : words(words),
-                                                                                                  n_to_gen(n),
-                                                                                                  length_to_gen(
-                                                                                                          length) {}
 
 void MD5sslDigestGenerator::generate() {
     md5Ssl.setDefaultWordLength(length_to_gen);

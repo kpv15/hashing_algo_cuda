@@ -9,5 +9,6 @@
 #include "MD5_cuda.cuh"
 #include "MD5_ssl.h"
 #include "MD5sslDigestGenerator.h"
+#include "IGenerator.h"
 
 #endif //INYNIERKA_HASHINGARGORITHMS_H
