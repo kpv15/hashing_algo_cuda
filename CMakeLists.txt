@@ -6,7 +6,7 @@ set(CMAKE_CXX_STANDARD 14)
 
 find_package(OpenSSL REQUIRED)
 add_executable(main
-        digestGenerator.cu
+        main.cu
         dummy.cpp
         hashing_algorithms/include/IHashingAlgorithm.cuh
         hashing_algorithms/MD5_cuda.cu
@@ -15,7 +15,10 @@ add_executable(main
         include/WordsGenerator.h
         hashing_algorithms/MD5_ssl.cpp
         hashing_algorithms/include/MD5_ssl.h
-        include/HexParser.h hashing_algorithms/MD5sslDigestGenerator.cpp hashing_algorithms/include/MD5sslDigestGenerator.h)
+        include/HexParser.h
+        hashing_algorithms/MD5sslDigestGenerator.cpp
+        hashing_algorithms/include/MD5sslDigestGenerator.h
+        hashing_algorithms/include/HashingArgorithms.h)
 target_link_libraries(main OpenSSL::SSL)
 
 #clion cuda hack

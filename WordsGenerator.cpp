@@ -11,6 +11,7 @@ static const char alphanum[] =
         "abcdefghijklmnopqrstuvwxyz";
 
 void WordsGenerator::generate(unsigned int lenght, unsigned int n) {
+    srand(time(nullptr));
     freeBuffer();
     words_buffer = new std::vector<std::string *>();
     this->lenght = lenght;
