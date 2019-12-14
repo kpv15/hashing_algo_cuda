@@ -32,6 +32,8 @@ public:
     void generate() override;
 
     unsigned int getDigestLength() override;
+
+    std::string getAlgorithmName() override;
 };
 
 

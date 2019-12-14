@@ -48,3 +48,7 @@ void MD5sslDigestGenerator::initDigest() {
 unsigned int MD5sslDigestGenerator::getDigestLength() {
     return md5Ssl.getDigestLength();
 }
+
+std::string MD5sslDigestGenerator::getAlgorithmName() {
+    return "md5_ssl";
+}

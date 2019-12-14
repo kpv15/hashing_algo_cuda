@@ -18,6 +18,8 @@ public:
     virtual void generate() = 0;
 
     virtual unsigned int getDigestLength() = 0;
+
+    virtual std::string getAlgorithmName() = 0;
 };
 
 #endif //INYNIERKA_IGENERATOR_H

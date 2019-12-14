@@ -5,25 +5,43 @@
 #include "cuda_clion_hack.hpp"
 #include "include/WordsGenerator.h"
 #include "include/HexParser.h"
-#include "hashing_algorithms/include/HashingArgorithms.h"
+#include "hashing_algorithms/include/HashingAlgorithms.h"
 
-const std::string defaultWordsListFileName = "words";
+const std::string defaultWordsListOutputFileName = "words";
 
 void generateWords(const unsigned int n, const unsigned int length);
 
 void generateDigests(IGenerator *generator);
 
 int main(int argc, char **argv) {
+
+    unsigned int length = 0;
+    unsigned int n = 0;
+
     for (unsigned int i = 1; i < argc; i++) {
-
-        if (!strcmp(argv[i], "-g")) {
-            if (argc >= i + 2) {
-                unsigned int n = atoi(argv[i + 1]);
-                unsigned int length = atoi(argv[i + 2]);
-                generateWords(n, length);
-            } else std::cout << "too few arguments for -g parameters, correct format -g n length" << std::endl;
+        if (!strcmp(argv[i], "-n")) {
+            if (argc >= i + 1)
+                n = atoi(argv[i + 1]);
+            else
+                std::cout << "after -n should be given number of records" << std::endl;
+        } else if (!strcmp(argv[i], "-l")) {
+            if (argc >= i + 1)
+                length = atoi(argv[i + 1]);
+            else
+                std::cout << "after -l should be given length of word" << std::endl;
         }
+    }
 
+    if (length <= 0 || n <= 0) {
+        std::cout << "provide number of records and length of word" << std::endl;
+        return 1;
+    }
+
+    for (unsigned int i = 1; i < argc; i++)
+        if (!strcmp(argv[i], "-g"))
+            generateWords(n, length);
+
+    for (unsigned int i = 1; i < argc; i++) {
         if (!strcmp(argv[i], "-d")) {
             if (argc >= i + 1) {
                 if (!strcmp(argv[i + 1], "md5_ssl")) {
@@ -35,8 +53,8 @@ int main(int argc, char **argv) {
 //                    generateDigests(MD5cudaDigestGenerator());
             } else std::cout << "too few arguments for -g parameters, correct format -g n length" << std::endl;
         }
-
     }
+    //todo add compare method
 }
 
 void generateWords(const unsigned int n, const unsigned int length) {
@@ -45,9 +63,9 @@ void generateWords(const unsigned int n, const unsigned int length) {
     wordsGenerator.generate(length, n);
     std::vector<std::string *> *words = wordsGenerator.getWordsBuffer();
 
-    std::ofstream outputFile(defaultWordsListFileName);
+    std::ofstream outputFile(defaultWordsListOutputFileName);
 
-    std::cout << "save words list in file: " << defaultWordsListFileName << std::endl;
+    std::cout << "save words list in file: " << defaultWordsListOutputFileName << std::endl;
 
     outputFile << n << '\t' << length << std::endl;
 
@@ -63,14 +81,14 @@ void generateWords(const unsigned int n, const unsigned int length) {
 }
 
 void generateDigests(IGenerator *generator) {
-    std::ifstream inputFile(defaultWordsListFileName);
+    std::ifstream inputFile(defaultWordsListOutputFileName);
     unsigned int n;
     unsigned int length;
 
     inputFile >> n;
     inputFile >> length;
 
-    std::cout << "start loading words from file: " << defaultWordsListFileName << std::endl;
+    std::cout << "start loading words from file: " << defaultWordsListOutputFileName << std::endl;
 
     char *buffer = new char[length + 1];
     inputFile.getline(buffer, length + 1);
@@ -84,7 +102,7 @@ void generateDigests(IGenerator *generator) {
     delete buffer;
     inputFile.close();
 
-    std::cout << "loading words complete " << n << " words was loaded" << std::endl;
+    std::cout << "loading words complete " << n << " words was loaded, input file closed" << std::endl;
     std::cout << "initialize generator" << std::endl;
     generator->setLength(length);
     generator->setN(n);
@@ -93,16 +111,23 @@ void generateDigests(IGenerator *generator) {
     std::cout << "start generating digests" << std::endl;
     generator->generate();
     std::cout << "generation complete" << std::endl;
+
+    std::string algorithmName = generator->getAlgorithmName();
+    std::ofstream outputDigest(algorithmName);
+
+    std::cout << "open output file: " << algorithmName << std::endl;
     std::cout << "printing results" << std::endl;
     unsigned char **digits = generator->getDigits();
-    unsigned int md5DigestLength = generator->getDigestLength();
-    HexParser md5Parser(md5DigestLength);
+    unsigned int digestLength = generator->getDigestLength();
+    HexParser hexParser(digestLength);//todo resolve parser type problem
 
     for (unsigned int i = 0; i < n; i++) {
         char *word = words[i];
-        std::cout << std::string(word, word + length) << '\t' << md5Parser(digits[i]) << std::endl;
+        std::cout << std::string(word, word + length) << '\t' << hexParser(digits[i]) << std::endl;
+        outputDigest << hexParser(digits[i]) << std::endl;
     }
 
+    std::cout << "output file closed, cleaning memory" << std::endl;
     for (unsigned int i = 0; i < n; i++) {
         delete[] words[i];
         delete[] digits[i];
