@@ -27,5 +27,14 @@ add_executable(main
         hashing_algorithms/IGenerator.cpp)
 target_link_libraries(main OpenSSL::SSL)
 
+add_executable(md5_cuda_test
+        tests/md5_cuda_test.cpp
+        dummy.cpp
+        hashing_algorithms/include/IHashingAlgorithm.cuh
+        hashing_algorithms/MD5_cuda.cu
+        hashing_algorithms/include/MD5_cuda.cuh
+        )
+target_link_libraries(main OpenSSL::SSL)
+
 #clion cuda hack
 include_directories(/opt/cuda/include)

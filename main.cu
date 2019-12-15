@@ -52,12 +52,12 @@ int main(int argc, char **argv) {
                 if (!strcmp(argv[i + 1], "md5_ssl")) {
                     MD5sslDigestGenerator *md5SslDigestGenerator = new MD5sslDigestGenerator();
                     generateDigests(md5SslDigestGenerator);
-                    fileList.push_back(md5SslDigestGenerator->getAlgorithmName());
+                    fileList.push_back(md5SslDigestGenerator->getAlgorithmName()+".hex");
                     delete md5SslDigestGenerator;
                 } else if (!strcmp(argv[i + 1], "md5_cuda")) {
                     MD5sslDigestGenerator *md5SslDigestGenerator = new MD5sslDigestGenerator();
                     generateDigests(md5SslDigestGenerator);
-                    fileList.push_back(md5SslDigestGenerator->getAlgorithmName());
+                    fileList.push_back(md5SslDigestGenerator->getAlgorithmName()+".hex");
                     delete md5SslDigestGenerator;
                 }
             } else std::cout << "too few arguments for -g parameters, correct format -g n length" << std::endl;
@@ -124,7 +124,8 @@ void generateDigests(IGenerator *generator) {
     std::cout << "generation complete" << std::endl;
 
     std::string algorithmName = generator->getAlgorithmName();
-    std::ofstream outputDigest(algorithmName);
+    std::ofstream outputDigestHex(algorithmName+".hex");
+    std::ofstream outputDigest(algorithmName+".txt");
 
     std::cout << "open output file: " << algorithmName << std::endl;
     std::cout << "printing results" << std::endl;
@@ -136,6 +137,7 @@ void generateDigests(IGenerator *generator) {
         char *word = words[i];
         std::cout << std::string(word, word + length) << "\t" << hexParser(digits[i]) << std::endl;
         outputDigest << hexParser(digits[i]) << std::endl;
+        outputDigestHex.write((char *) (digits[i]), digestLength);
     }
 
     std::cout << "output file closed, cleaning memory" << std::endl;
@@ -145,6 +147,9 @@ void generateDigests(IGenerator *generator) {
     }
     delete[] words;
     delete[] digits;
+
+    outputDigest.close();
+    outputDigestHex.close();
 
     std::cout << "cleaning memory complete" << std::endl;
 }

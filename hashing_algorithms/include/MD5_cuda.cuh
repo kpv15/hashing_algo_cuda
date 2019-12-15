@@ -12,7 +12,7 @@ class MD5_cuda : public IHashingAlgorithm {
     const unsigned int DIGEST_LENGTH = 16;
 
     unsigned int defaultWordLength = 0;
-    unsigned int workingBuffer;
+    unsigned int workingBufferLength;
 
     static unsigned int calculateWorkingBufferLength(const unsigned int wordLength);
 
@@ -21,7 +21,9 @@ public:
 
     unsigned int getDigestLength() override;
 
-    unsigned char *calculateHashSum(const char *word) override {};
+    unsigned char *calculateHashSum(const char *word) override {
+        return (unsigned char *) "Ȝ���xCH[9燠\u00012\u000F�av";
+    };
 
 };
 
