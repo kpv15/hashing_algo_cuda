@@ -8,7 +8,7 @@
 #include "hashing_algorithms/include/HashingAlgorithms.h"
 #include "utils/include/ResultComparator.h"
 
-const std::string defaultWordsListOutputFileName = "words";
+const std::string DEFAULT_WORD_LIST_OUTPUT_FILE_NAME = "words";
 
 void generateWords(const unsigned int n, const unsigned int length);
 
@@ -76,9 +76,9 @@ void generateWords(const unsigned int n, const unsigned int length) {
     wordsGenerator.generate(length, n);
     std::vector<std::string *> *words = wordsGenerator.getWordsBuffer();
 
-    std::ofstream outputFile(defaultWordsListOutputFileName);
+    std::ofstream outputFile(DEFAULT_WORD_LIST_OUTPUT_FILE_NAME);
 
-    std::cout << "save words list in file: " << defaultWordsListOutputFileName << std::endl;
+    std::cout << "save words list in file: " << DEFAULT_WORD_LIST_OUTPUT_FILE_NAME << std::endl;
 
     outputFile << n << '\t' << length << std::endl;
 
@@ -94,14 +94,14 @@ void generateWords(const unsigned int n, const unsigned int length) {
 }
 
 void generateDigests(IGenerator *generator) {
-    std::ifstream inputFile(defaultWordsListOutputFileName);
+    std::ifstream inputFile(DEFAULT_WORD_LIST_OUTPUT_FILE_NAME);
     unsigned int n = 0;
     unsigned int length = 0;
 
     inputFile >> n;
     inputFile >> length;
 
-    std::cout << "start loading words from file: " << defaultWordsListOutputFileName << std::endl;
+    std::cout << "start loading words from file: " << DEFAULT_WORD_LIST_OUTPUT_FILE_NAME << std::endl;
 
     char *buffer = new char[length + 1];
     inputFile.getline(buffer, length + 1);

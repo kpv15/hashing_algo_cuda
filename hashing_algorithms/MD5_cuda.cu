@@ -9,9 +9,11 @@ void MD5_cuda::setDefaultWordLength(unsigned int i) {
 }
 
 unsigned int MD5_cuda::getDigestLength() {
-    return digestLength;
+    return DIGEST_LENGTH;
 }
 
-unsigned int MD5_cuda::calculateWorkingLength(const unsigned int wordLenth) {
-    return ((((wordLenth + 8) / 64) + 1) * 64) - 8;
+unsigned int MD5_cuda::calculateWorkingBufferLength(const unsigned int wordLength) {
+    unsigned int toAdd = 64 - (wordLength + 8) % 64;
+    if (toAdd == 0) toAdd = 64;
+    return wordLength + toAdd;
 }

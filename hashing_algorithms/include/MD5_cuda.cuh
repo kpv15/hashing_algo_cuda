@@ -7,23 +7,21 @@
 
 #include "IHashingAlgorithm.cuh"
 
-    class MD5_cuda : public IHashingAlgorithm {
+class MD5_cuda : public IHashingAlgorithm {
 
-    const unsigned int digestLength = 16;
+    const unsigned int DIGEST_LENGTH = 16;
 
     unsigned int defaultWordLength = 0;
-    unsigned int workingLength;
+    unsigned int workingBuffer;
 
-    static unsigned int calculateWorkingLength(const unsigned int wordLenth);
+    static unsigned int calculateWorkingBufferLength(const unsigned int wordLength);
 
 public:
-    std::string calculateHashSum(std::string word) override{};
-
     void setDefaultWordLength(unsigned int i) override;
 
     unsigned int getDigestLength() override;
 
-    unsigned char *calculateHashSum(const char *word) override{};
+    unsigned char *calculateHashSum(const char *word) override {};
 
 };
 

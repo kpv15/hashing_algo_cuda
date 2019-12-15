@@ -5,7 +5,7 @@
 #ifndef INYNIERKA_MD5_SSL_H
 #define INYNIERKA_MD5_SSL_H
 
-    #include "IHashingAlgorithm.cuh"
+#include "IHashingAlgorithm.cuh"
 
 
 class MD5_ssl : public IHashingAlgorithm {
@@ -15,12 +15,9 @@ class MD5_ssl : public IHashingAlgorithm {
 public:
     void setDefaultWordLength(unsigned int) override;
 
-    std::string calculateHashSum(std::string word) override;
-
     unsigned char *calculateHashSum(const char *word) override;
 
     unsigned int getDigestLength() override;
-
 };
 
 
