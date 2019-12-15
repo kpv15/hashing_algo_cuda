@@ -17,14 +17,6 @@ class MD5cudaDigestGenerator : public IGenerator {
     MD5_cuda md5Cuda;
 
 public:
-    void setN(unsigned int n) override;
-
-    void setLength(unsigned int length) override;
-
-    unsigned char **getDigits() override;
-
-    void setWords(char **words) override;
-
     void generate() override {
 
     }

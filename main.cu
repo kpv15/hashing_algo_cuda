@@ -117,9 +117,7 @@ void generateDigests(IGenerator *generator) {
 
     std::cout << "loading words complete " << n << " words was loaded, input file closed" << std::endl;
     std::cout << "initialize generator" << std::endl;
-    generator->setLength(length);
-    generator->setN(n);
-    generator->setWords(words);
+    generator->setWords(words, n, length);
 
     std::cout << "start generating digests" << std::endl;
     generator->generate();

@@ -5,15 +5,23 @@
 #ifndef INYNIERKA_IGENERATOR_H
 #define INYNIERKA_IGENERATOR_H
 
+#include <string>
+
 class IGenerator {
+protected:
+    char **words = nullptr;
+    unsigned char **digest = nullptr;
+    unsigned int n = 0;
+    unsigned int length = 0;
+    unsigned int n_to_gen = 0;
+    unsigned int length_to_gen = 0;
+
+    void initDigest();
+
 public:
-    virtual void setN(unsigned int n) = 0;
+    virtual unsigned char **getDigits();
 
-    virtual void setLength(unsigned int length) = 0;
-
-    virtual unsigned char **getDigits() = 0;
-
-    virtual void setWords(char **words) = 0;
+    virtual void setWords(char **words, unsigned int n, unsigned int length);
 
     virtual void generate() = 0;
 
