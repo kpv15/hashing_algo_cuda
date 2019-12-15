@@ -5,6 +5,7 @@
 #include <cstring>
 #include <iostream>
 #include "../hashing_algorithms/include/MD5_cuda.cuh"
+#include "../utils/include/HexParser.h"
 
 bool md5_cuda();
 
@@ -26,7 +27,9 @@ bool md5_cuda() {
 
     for (int i = 0; i < 16; i++)
         if (digest[i] != correctResult[i]) {
-            std::cout <<TEST_NAME << " test failed" << std::endl;
+            HexParser hexParser(md5Cuda.getDigestLength());
+            std::cout << TEST_NAME << " test failed\t[ " << word << " ]\t" << hexParser(digest) << " != "
+                      << hexParser(correctResult) << std::endl;
             return false;
         }
     std::cout << TEST_NAME << " test success" << std::endl;

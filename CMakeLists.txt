@@ -27,8 +27,8 @@ add_executable(main
         hashing_algorithms/IGenerator.cpp)
 target_link_libraries(main OpenSSL::SSL)
 
-add_executable(md5_cuda_test
-        tests/md5_cuda_test.cpp
+add_executable(tests
+        tests/tests.cpp
         dummy.cpp
         hashing_algorithms/include/IHashingAlgorithm.cuh
         hashing_algorithms/MD5_cuda.cu
