@@ -13,6 +13,8 @@ void generateWords(const unsigned int n, const unsigned int length);
 
 void generateDigests(IGenerator *generator);
 
+void compareResults(std::vector<std::string> filesNames);
+
 int main(int argc, char **argv) {
 
     unsigned int length = 0;
@@ -54,7 +56,16 @@ int main(int argc, char **argv) {
             } else std::cout << "too few arguments for -g parameters, correct format -g n length" << std::endl;
         }
     }
-    //todo add compare method
+
+    for (unsigned int i = 1; i < argc; i++)
+        if (!strcmp(argv[i], "-c")) {
+            std::vector<std::string> list;
+            for (unsigned int j = i; i < argc; i++) {
+                if (argv[j][0] == '-') break;
+                list.push_back(std::string(argv[j]));
+            }
+            compareResults(list);
+        }
 }
 
 void generateWords(const unsigned int n, const unsigned int length) {
@@ -99,7 +110,7 @@ void generateDigests(IGenerator *generator) {
         inputFile.getline(buffer, length + 1);
         memcpy(words[i], buffer, length);
     }
-    delete buffer;
+    delete[] buffer;
     inputFile.close();
 
     std::cout << "loading words complete " << n << " words was loaded, input file closed" << std::endl;
@@ -138,4 +149,48 @@ void generateDigests(IGenerator *generator) {
     std::cout << "cleaning memory complete" << std::endl;
 }
 
+void compareResults(std::vector<std::string> filesNames) {
+    std::vector<std::ifstream *> files;
+    unsigned int n = 0, current_n;
+    unsigned int length = 0, current_length;
 
+    std::cout << "opening and checking file sizes" << std::endl;
+    for (auto &fileName:filesNames) {
+        std::ifstream *file = new std::ifstream(fileName);
+
+        *file >> current_n;
+        *file >> current_length;
+
+        if ((current_length != length && length > 0) || (current_n != n && n > 0)) {
+            std::cout << "files have different sizes" << std::endl;
+            return; //todo add file closing
+        }
+        files.push_back(file);
+    }
+    std::cout << "comparing file contexts" << std::endl;
+
+    char *buffer = new char[length + 1];
+    char *buffer2 = new char[length + 1];
+    strcpy(buffer, "");
+    for (unsigned int i = 0; i < n + 1; i++) {
+        for (auto file:files) {
+            if (strcmp(buffer, ""))
+                file->getline(buffer, length + 1);
+            else {
+                file->getline(buffer2, length + 1);
+                if (strcmp(buffer, buffer2)) {
+                    std::cout << "different data in files" << std::endl;
+                    return; //todo add file closing
+                }
+            }
+        }
+    }
+
+    std::cout << "file has the same contexts" << std::endl;
+    std::cout << "closing files" << std::endl;
+    for (auto &file:files) {
+        file->close();
+        delete file;
+    }
+    files.clear();
+}
