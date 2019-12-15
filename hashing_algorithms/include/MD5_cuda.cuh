@@ -5,6 +5,7 @@
 #ifndef INYNIERKA_MD5_CUH
 #define INYNIERKA_MD5_CUH
 
+#include <cstring>
 #include "IHashingAlgorithm.cuh"
 
 class MD5_cuda : public IHashingAlgorithm {
@@ -13,8 +14,19 @@ class MD5_cuda : public IHashingAlgorithm {
 
     unsigned int defaultWordLength = 0;
     unsigned int workingBufferLength;
+    unsigned char *workingBuffer = nullptr;
 
-    static unsigned int calculateWorkingBufferLength(const unsigned int wordLength);
+    unsigned int calculateWorkingBufferLength();
+
+    void createWorkingBuffer(const char *word) {
+        if (workingBuffer != nullptr)
+            delete[] workingBuffer;
+        workingBufferLength = calculateWorkingBufferLength();
+        workingBuffer = new unsigned char[workingBufferLength];
+        std::memcpy(workingBuffer, word, defaultWordLength);
+        workingBuffer[defaultWordLength] = 0b10000000;
+        std::memset(workingBuffer + defaultWordLength + 1, 0, workingBufferLength - defaultWordLength -1);
+    };
 
 public:
     void setDefaultWordLength(unsigned int i) override;
@@ -22,7 +34,13 @@ public:
     unsigned int getDigestLength() override;
 
     unsigned char *calculateHashSum(const char *word) override {
-        return (unsigned char *) "Ȝ���xCH[9燠\u00012\u000F�av";
+        createWorkingBuffer(word);
+
+
+
+        unsigned char *toReturn = workingBuffer;
+        workingBuffer = nullptr;
+        return toReturn;
     };
 
 };
