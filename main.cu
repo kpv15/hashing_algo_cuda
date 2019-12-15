@@ -6,6 +6,7 @@
 #include "include/WordsGenerator.h"
 #include "include/HexParser.h"
 #include "hashing_algorithms/include/HashingAlgorithms.h"
+#include "hashing_algorithms/ResultComparator.h"
 
 const std::string defaultWordsListOutputFileName = "words";
 
@@ -19,6 +20,7 @@ int main(int argc, char **argv) {
 
     unsigned int length = 0;
     unsigned int n = 0;
+    std::vector<std::string> fileList;
 
     for (unsigned int i = 1; i < argc; i++) {
         if (!strcmp(argv[i], "-n")) {
@@ -34,14 +36,15 @@ int main(int argc, char **argv) {
         }
     }
 
-    if (length <= 0 || n <= 0) {
-        std::cout << "provide number of records and length of word" << std::endl;
-        return 1;
-    }
-
-    for (unsigned int i = 1; i < argc; i++)
-        if (!strcmp(argv[i], "-g"))
+    for (unsigned int i = 1; i < argc; i++) {
+        if (!strcmp(argv[i], "-g")) {
+            if (length <= 0 || n <= 0) {
+                std::cout << "provide number of records and length of word" << std::endl;
+                return 1;
+            }
             generateWords(n, length);
+        }
+    }
 
     for (unsigned int i = 1; i < argc; i++) {
         if (!strcmp(argv[i], "-d")) {
@@ -49,6 +52,7 @@ int main(int argc, char **argv) {
                 if (!strcmp(argv[i + 1], "md5_ssl")) {
                     MD5sslDigestGenerator *md5SslDigestGenerator = new MD5sslDigestGenerator();
                     generateDigests(md5SslDigestGenerator);
+                    fileList.push_back(md5SslDigestGenerator->getAlgorithmName());
                     delete md5SslDigestGenerator;
                 }
 //                else if (!strcmp(argv[i + 1], "md5_cuda"))
@@ -59,12 +63,7 @@ int main(int argc, char **argv) {
 
     for (unsigned int i = 1; i < argc; i++)
         if (!strcmp(argv[i], "-c")) {
-            std::vector<std::string> list;
-            for (unsigned int j = i; i < argc; i++) {
-                if (argv[j][0] == '-') break;
-                list.push_back(std::string(argv[j]));
-            }
-            compareResults(list);
+            compareResults(fileList);
         }
 }
 
@@ -143,54 +142,13 @@ void generateDigests(IGenerator *generator) {
         delete[] words[i];
         delete[] digits[i];
     }
-    delete[]words;
+    delete[] words;
     delete[] digits;
 
     std::cout << "cleaning memory complete" << std::endl;
 }
 
 void compareResults(std::vector<std::string> filesNames) {
-    std::vector<std::ifstream *> files;
-    unsigned int n = 0, current_n;
-    unsigned int length = 0, current_length;
-
-    std::cout << "opening and checking file sizes" << std::endl;
-    for (auto &fileName:filesNames) {
-        std::ifstream *file = new std::ifstream(fileName);
-
-        *file >> current_n;
-        *file >> current_length;
-
-        if ((current_length != length && length > 0) || (current_n != n && n > 0)) {
-            std::cout << "files have different sizes" << std::endl;
-            return; //todo add file closing
-        }
-        files.push_back(file);
-    }
-    std::cout << "comparing file contexts" << std::endl;
-
-    char *buffer = new char[length + 1];
-    char *buffer2 = new char[length + 1];
-    strcpy(buffer, "");
-    for (unsigned int i = 0; i < n + 1; i++) {
-        for (auto file:files) {
-            if (strcmp(buffer, ""))
-                file->getline(buffer, length + 1);
-            else {
-                file->getline(buffer2, length + 1);
-                if (strcmp(buffer, buffer2)) {
-                    std::cout << "different data in files" << std::endl;
-                    return; //todo add file closing
-                }
-            }
-        }
-    }
-
-    std::cout << "file has the same contexts" << std::endl;
-    std::cout << "closing files" << std::endl;
-    for (auto &file:files) {
-        file->close();
-        delete file;
-    }
-    files.clear();
+    ResultComparator resultComparator(filesNames);
+    resultComparator.compare();
 }
