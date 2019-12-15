@@ -55,8 +55,12 @@ int main(int argc, char **argv) {
                     fileList.push_back(md5SslDigestGenerator->getAlgorithmName());
                     delete md5SslDigestGenerator;
                 }
-//                else if (!strcmp(argv[i + 1], "md5_cuda"))
-//                    generateDigests(MD5cudaDigestGenerator());
+                else if (!strcmp(argv[i + 1], "md5_cuda")){
+                    MD5sslDigestGenerator *md5SslDigestGenerator = new MD5sslDigestGenerator();
+                    generateDigests(md5SslDigestGenerator);
+                    fileList.push_back(md5SslDigestGenerator->getAlgorithmName());
+                    delete md5SslDigestGenerator;
+                }
             } else std::cout << "too few arguments for -g parameters, correct format -g n length" << std::endl;
         }
     }
