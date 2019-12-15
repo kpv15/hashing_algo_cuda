@@ -6,7 +6,7 @@
 #include "include/MD5_ssl.h"
 
 void MD5sslDigestGenerator::setWords(char **words) {
-    MD5sslDigestGenerator::words = words;
+    this->words = words;
 }
 
 unsigned char **MD5sslDigestGenerator::getDigits() {
@@ -16,12 +16,12 @@ unsigned char **MD5sslDigestGenerator::getDigits() {
 }
 
 void MD5sslDigestGenerator::setN(const unsigned int n) {
-    MD5sslDigestGenerator::n_to_gen = n;
+    this->n_to_gen = n;
 }
 
 
 void MD5sslDigestGenerator::setLength(const unsigned int length) {
-    MD5sslDigestGenerator::length_to_gen = length;
+    this->length_to_gen = length;
 }
 
 void MD5sslDigestGenerator::generate() {

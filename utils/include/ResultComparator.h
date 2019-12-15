@@ -13,7 +13,7 @@ class ResultComparator {
     std::vector<std::string> filesNames;
 
 public:
-    ResultComparator(std::vector<std::string> &filesNames) : filesNames(filesNames) {};
+    explicit ResultComparator(std::vector<std::string> &filesNames) : filesNames(filesNames) {};
 
     bool compare();
 };

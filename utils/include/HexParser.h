@@ -10,12 +10,12 @@
 
 
 class HexParser {
-    std::ostream *output;
+    std::ostream *output = nullptr;
     unsigned int digestLength;
-    unsigned char *word;
+    unsigned char *word = nullptr;
 
 public:
-    HexParser(unsigned int digestLength) : digestLength(digestLength) {}
+    explicit HexParser(unsigned int digestLength) : digestLength(digestLength) {}
 
     inline void print() {
         for (unsigned int i = 0; i < digestLength; i++)

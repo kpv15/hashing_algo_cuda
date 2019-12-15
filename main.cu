@@ -3,10 +3,10 @@
 #include <fstream>
 #include <cstring>
 #include "cuda_clion_hack.hpp"
-#include "include/WordsGenerator.h"
-#include "include/HexParser.h"
+#include "utils/include/WordsGenerator.h"
+#include "utils/include/HexParser.h"
 #include "hashing_algorithms/include/HashingAlgorithms.h"
-#include "hashing_algorithms/ResultComparator.h"
+#include "utils/include/ResultComparator.h"
 
 const std::string defaultWordsListOutputFileName = "words";
 
@@ -18,8 +18,8 @@ void compareResults(std::vector<std::string> filesNames);
 
 int main(int argc, char **argv) {
 
-    unsigned int length = 0;
-    unsigned int n = 0;
+    int length = 0;
+    int n = 0;
     std::vector<std::string> fileList;
 
     for (unsigned int i = 1; i < argc; i++) {
@@ -54,8 +54,7 @@ int main(int argc, char **argv) {
                     generateDigests(md5SslDigestGenerator);
                     fileList.push_back(md5SslDigestGenerator->getAlgorithmName());
                     delete md5SslDigestGenerator;
-                }
-                else if (!strcmp(argv[i + 1], "md5_cuda")){
+                } else if (!strcmp(argv[i + 1], "md5_cuda")) {
                     MD5sslDigestGenerator *md5SslDigestGenerator = new MD5sslDigestGenerator();
                     generateDigests(md5SslDigestGenerator);
                     fileList.push_back(md5SslDigestGenerator->getAlgorithmName());
@@ -96,8 +95,8 @@ void generateWords(const unsigned int n, const unsigned int length) {
 
 void generateDigests(IGenerator *generator) {
     std::ifstream inputFile(defaultWordsListOutputFileName);
-    unsigned int n;
-    unsigned int length;
+    unsigned int n = 0;
+    unsigned int length = 0;
 
     inputFile >> n;
     inputFile >> length;
@@ -137,7 +136,7 @@ void generateDigests(IGenerator *generator) {
 
     for (unsigned int i = 0; i < n; i++) {
         char *word = words[i];
-        std::cout << std::string(word, word + length) << '\t' << hexParser(digits[i]) << std::endl;
+        std::cout << std::string(word, word + length) << "\t" << hexParser(digits[i]) << std::endl;
         outputDigest << hexParser(digits[i]) << std::endl;
     }
 

@@ -5,16 +5,16 @@
 #include <iostream>
 #include <cstring>
 #include <fstream>
-#include "ResultComparator.h"
+#include "include/ResultComparator.h"
 
 bool ResultComparator::compare() {
     std::vector<std::ifstream *> files;
-    unsigned int n = 0, current_n;
-    unsigned int length = 0, current_length;
+    unsigned int n = 0, current_n = 0;
+    unsigned int length = 0, current_length = 0;
 
     std::cout << "opening and checking file sizes" << std::endl;
     for (auto &fileName:filesNames) {
-        std::ifstream *file = new std::ifstream(fileName);
+        auto *file = new std::ifstream(fileName);
 
         *file >> current_n;
         *file >> current_length;
@@ -32,11 +32,11 @@ bool ResultComparator::compare() {
     strcpy(buffer, "");
     for (unsigned int i = 0; i < n + 1; i++) {
         for (auto file:files) {
-            if (strcmp(buffer, ""))
+            if (strcmp(buffer, "") != 0)
                 file->getline(buffer, length + 1);
             else {
                 file->getline(buffer2, length + 1);
-                if (strcmp(buffer, buffer2)) {
+                if (strcmp(buffer, buffer2) != 0) {
                     std::cout << "different data in line " << i << std::endl;
                     return false; //todo add file closing
                 }

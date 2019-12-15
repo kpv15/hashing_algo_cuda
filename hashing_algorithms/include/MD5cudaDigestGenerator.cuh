@@ -6,33 +6,30 @@
 #define INYNIERKA_MD5CUDADIGESTGENERATOR_CUH
 
 
-#include <string>
+#include "MD5_cuda.cuh"
 #include "IGenerator.h"
 
-class MD5cudaDigestGenerator: public IGenerator{
-    void setN(unsigned int n) override {
+class MD5cudaDigestGenerator : public IGenerator {
+    char **words = nullptr;
+    unsigned char **digest = nullptr;
+    unsigned int n = 0;
+    unsigned int length = 0;
+    MD5_cuda md5Cuda;
 
-    }
+public:
+    void setN(unsigned int n) override;
 
-    void setLength(unsigned int length) override {
+    void setLength(unsigned int length) override;
 
-    }
+    unsigned char **getDigits() override;
 
-    unsigned char **getDigits() override {
-        return nullptr;
-    }
-
-    void setWords(char **words) override {
-
-    }
+    void setWords(char **words) override;
 
     void generate() override {
 
     }
 
-    unsigned int getDigestLength() override {
-        return 0;
-    }
+    unsigned int getDigestLength() override;
 
     std::string getAlgorithmName() override;
 };
