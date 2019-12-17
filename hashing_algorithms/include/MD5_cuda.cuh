@@ -20,7 +20,7 @@ class MD5_cuda : public IHashingAlgorithm {
     const unsigned int DIGEST_LENGTH = 16;
     static const unsigned char S[64];
     static const block DEFAULT_DIGEST_BUFFER;
-    static const unsigned int K[64];
+    static const unsigned int T[64];
 
     unsigned long int defaultWordLength = 0;
     unsigned long int workingBufferLength = 0;
@@ -32,13 +32,17 @@ class MD5_cuda : public IHashingAlgorithm {
 
     void createWorkingBuffer(const char *word);
 
-    unsigned int functionF(const unsigned int x, const unsigned int y, const unsigned int z);
+    unsigned int functionF(const unsigned int &x, const unsigned int &y, const unsigned int &z);
 
-    unsigned int functionG(const unsigned int x, const unsigned int y, const unsigned int z);
+    unsigned int functionG(const unsigned int &x, const unsigned int &y, const unsigned int &z);
 
-    unsigned int functionH(const unsigned int x, const unsigned int y, const unsigned int z);
+    unsigned int functionH(const unsigned int &x, const unsigned int &y, const unsigned int &z);
 
-    unsigned int functionI(const unsigned int x, const unsigned int y, const unsigned int z);
+    unsigned int functionI(const unsigned int &x, const unsigned int &y, const unsigned int &z);
+
+    unsigned int leftRotate(unsigned int x, unsigned int n) {
+        return (x << n) | (n >> (32 - n));
+    }
 
 public:
     void setDefaultWordLength(unsigned int i) override;
@@ -48,32 +52,36 @@ public:
     unsigned char *calculateHashSum(const char *word) override {
         createWorkingBuffer(word);
         mdBuffer = DEFAULT_DIGEST_BUFFER;
-
-        unsigned int *chunks = reinterpret_cast<unsigned int *>(workingBuffer);
+        block stepBuffer;
 
         for (unsigned int i = 0; i < numberOfChunks; i++) {
-            block stepBuffer = mdBuffer;
-            int F, g;
-            for (int step = 0; step < 64; step++) {
+            unsigned int *X = reinterpret_cast<unsigned int *>(workingBuffer + i * 16);
+
+            stepBuffer = mdBuffer;
+            unsigned int F, g;
+
+            for (unsigned int step = 0; step < 64; step++) {
                 if (step < 16) {
-                    F = functionF(st);
+                    F = functionF(stepBuffer.b,stepBuffer.c,stepBuffer.d);
                     g = i;
                 } else if (step < 32) {
-                    F = functionG(stepBuffer);
+                    F = functionG(stepBuffer.b,stepBuffer.c,stepBuffer.d);
                     g = (5 * i + 1) % 16;
                 } else if (step < 48) {
-                    F = functionH(stepBuffer);
+                    F = functionH(stepBuffer.b,stepBuffer.c,stepBuffer.d);
                     g = (3 * i + 5) % 16;
-                } else if (step < 64) {
-                    F = functionI(stepBuffer);
+                } else {
+                    F = functionI(stepBuffer.b,stepBuffer.c,stepBuffer.d);
                     g = (7 * i) % 16;
                 }
-                F += stepBuffer.a + K[i] + chunks[4 * i + g];
+
+                F += stepBuffer.a + T[i] + X[g];
                 stepBuffer.a = stepBuffer.d;
                 stepBuffer.d = stepBuffer.c;
                 stepBuffer.c = stepBuffer.b;
-                stepBuffer.b += F << S[i];
+                stepBuffer.b += leftRotate(F,S[i]);
             }
+
             mdBuffer.a += stepBuffer.a;
             mdBuffer.b += stepBuffer.b;
             mdBuffer.c += stepBuffer.c;
