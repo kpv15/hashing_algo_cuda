@@ -66,22 +66,29 @@ const unsigned int MD5_cuda::T[64] = {
         0xf7537e82, 0xbd3af235, 0x2ad7d2bb, 0xeb86d391
 };
 
+const unsigned int MD5_cuda::K[64] = {
+        0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,
+        1,6,11,0,5,10,15,4,9,14,3,8,13,2,7,12,
+        5,8,11,14,1,4,7,10,13,0,3,6,9,12,15,2,
+        0,7,14,5,12,3,10,1,8,15,6,13,4,11,2,9
+};
+
 MD5_cuda::~MD5_cuda() {
     delete[] workingBuffer;
 }
 
-unsigned int MD5_cuda::functionF(const unsigned int &x, const unsigned int &y, const unsigned int &z) {
+unsigned int MD5_cuda::funF(const unsigned int &x, const unsigned int &y, const unsigned int &z) {
     return (x & y) | ((~x) & z);
 }
 
-unsigned int MD5_cuda::functionG(const unsigned int &x, const unsigned int &y, const unsigned int &z) {
+unsigned int MD5_cuda::funG(const unsigned int &x, const unsigned int &y, const unsigned int &z) {
     return (x & z) | (y & (~z));
 }
 
-unsigned int MD5_cuda::functionH(const unsigned int &x, const unsigned int &y, const unsigned int &z) {
+unsigned int MD5_cuda::funH(const unsigned int &x, const unsigned int &y, const unsigned int &z) {
     return x ^ y ^ z;
 }
 
-unsigned int MD5_cuda::functionI(const unsigned int &x, const unsigned int &y, const unsigned int &z) {
+unsigned int MD5_cuda::funI(const unsigned int &x, const unsigned int &y, const unsigned int &z) {
     return y ^ (x | (~z));
 }

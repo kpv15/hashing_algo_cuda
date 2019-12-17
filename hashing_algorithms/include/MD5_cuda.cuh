@@ -21,6 +21,7 @@ class MD5_cuda : public IHashingAlgorithm {
     static const unsigned char S[64];
     static const block DEFAULT_DIGEST_BUFFER;
     static const unsigned int T[64];
+    static const unsigned int K[64];
 
     unsigned long int defaultWordLength = 0;
     unsigned long int workingBufferLength = 0;
@@ -32,13 +33,13 @@ class MD5_cuda : public IHashingAlgorithm {
 
     void createWorkingBuffer(const char *word);
 
-    unsigned int functionF(const unsigned int &x, const unsigned int &y, const unsigned int &z);
+    unsigned int funF(const unsigned int &x, const unsigned int &y, const unsigned int &z);
 
-    unsigned int functionG(const unsigned int &x, const unsigned int &y, const unsigned int &z);
+    unsigned int funG(const unsigned int &x, const unsigned int &y, const unsigned int &z);
 
-    unsigned int functionH(const unsigned int &x, const unsigned int &y, const unsigned int &z);
+    unsigned int funH(const unsigned int &x, const unsigned int &y, const unsigned int &z);
 
-    unsigned int functionI(const unsigned int &x, const unsigned int &y, const unsigned int &z);
+    unsigned int funI(const unsigned int &x, const unsigned int &y, const unsigned int &z);
 
     unsigned int leftRotate(unsigned int x, unsigned int n) {
         return (x << n) | (n >> (32 - n));
@@ -58,28 +59,25 @@ public:
             unsigned int *X = reinterpret_cast<unsigned int *>(workingBuffer + i * 16);
 
             stepBuffer = mdBuffer;
-            unsigned int F, g;
+
+            unsigned int *a = &stepBuffer.a, *b = &stepBuffer.b, *c = &stepBuffer.c, *d = &stepBuffer.d, *tmp;
 
             for (unsigned int step = 0; step < 64; step++) {
                 if (step < 16) {
-                    F = functionF(stepBuffer.b,stepBuffer.c,stepBuffer.d);
-                    g = i;
+                    *a = *b + leftRotate((*a + funF(*b, *c, *d) + X[K[step]] + T[step]), S[step]);
                 } else if (step < 32) {
-                    F = functionG(stepBuffer.b,stepBuffer.c,stepBuffer.d);
-                    g = (5 * i + 1) % 16;
+                    *a = *b + leftRotate((*a + funG(*b, *c, *d) + X[K[step]] + T[step]), S[step]);
                 } else if (step < 48) {
-                    F = functionH(stepBuffer.b,stepBuffer.c,stepBuffer.d);
-                    g = (3 * i + 5) % 16;
+                    *a = *b + leftRotate((*a + funH(*b, *c, *d) + X[K[step]] + T[step]), S[step]);
                 } else {
-                    F = functionI(stepBuffer.b,stepBuffer.c,stepBuffer.d);
-                    g = (7 * i) % 16;
+                    *a = *b + leftRotate((*a + funI(*b, *c, *d) + X[K[step]] + T[step]), S[step]);
                 }
 
-                F += stepBuffer.a + T[i] + X[g];
-                stepBuffer.a = stepBuffer.d;
-                stepBuffer.d = stepBuffer.c;
-                stepBuffer.c = stepBuffer.b;
-                stepBuffer.b += leftRotate(F,S[i]);
+                tmp = d;
+                d = c;
+                c = b;
+                b = a;
+                a = tmp;
             }
 
             mdBuffer.a += stepBuffer.a;
@@ -93,7 +91,10 @@ public:
         return toReturn;
     };
 
-    virtual ~MD5_cuda();
+    virtual ~
+
+    MD5_cuda();
+
 };
 
 
