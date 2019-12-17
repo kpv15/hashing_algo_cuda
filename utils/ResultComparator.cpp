@@ -51,5 +51,7 @@ bool ResultComparator::compare() {
         delete file;
     }
     files.clear();
+    delete[] buffer;
+    delete[] buffer2;
     return true;
 }

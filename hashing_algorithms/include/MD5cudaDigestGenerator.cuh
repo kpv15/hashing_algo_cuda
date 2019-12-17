@@ -18,7 +18,7 @@ public:
         md5Cuda.setDefaultWordLength(length_to_gen);
         initDigest();
         for (unsigned int i = 0; i < n_to_gen; i++)
-            digest[i] = md5Cuda.calculateHashSum(words[i]);
+            md5Cuda.calculateHashSum(&digest[i], words[i]);
         n = n_to_gen;
         length = length_to_gen;
     }

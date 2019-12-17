@@ -11,7 +11,7 @@ void MD5sslDigestGenerator::generate() {
     initDigest();
 
     for (unsigned int i = 0; i < n_to_gen; i++)
-        digest[i] = md5Ssl.calculateHashSum(words[i]);
+        md5Ssl.calculateHashSum(&digest[i], words[i]);
 
     length = length_to_gen;
     n = n_to_gen;

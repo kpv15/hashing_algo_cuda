@@ -97,7 +97,7 @@ unsigned int MD5_cpu::leftRotate(unsigned int x, unsigned int n) {
     return (x << n) | (x >> (32 - n));
 }
 
-unsigned char *MD5_cpu::calculateHashSum(const char *word) {
+void MD5_cpu::calculateHashSum(unsigned char **digest, const char *word) {
     createWorkingBuffer(word);
     block mdBuffer = DEFAULT_DIGEST_BUFFER;
 
@@ -132,7 +132,6 @@ unsigned char *MD5_cpu::calculateHashSum(const char *word) {
         mdBuffer.d += stepBuffer.d;
     }
 
-    unsigned char *toReturn = new unsigned char[DIGEST_LENGTH];
-    memcpy(toReturn, &mdBuffer, DIGEST_LENGTH);
-    return toReturn;
+    *digest = new unsigned char[DIGEST_LENGTH];
+    memcpy(*digest, &mdBuffer, DIGEST_LENGTH);
 }

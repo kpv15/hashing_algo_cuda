@@ -5,11 +5,9 @@
 #include "include/MD5_ssl.h"
 #include <openssl/md5.h>
 
-unsigned char *MD5_ssl::calculateHashSum(const char *word) {
-    auto *result = new unsigned char[MD5_DIGEST_LENGTH];
-    MD5(reinterpret_cast<const unsigned char *>(word), defaultWordLength, result);
-
-    return result;
+void MD5_ssl::calculateHashSum(unsigned char **digest,const char *word){
+    *digest = new unsigned char[MD5_DIGEST_LENGTH];
+    MD5(reinterpret_cast<const unsigned char *>(word), defaultWordLength, *digest);
 }
 
 void MD5_ssl::setDefaultWordLength(unsigned int defaultLength) {

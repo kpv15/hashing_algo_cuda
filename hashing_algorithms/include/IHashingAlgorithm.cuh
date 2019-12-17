@@ -14,7 +14,7 @@ public:
 
     virtual void setDefaultWordLength(unsigned int) = 0;
 
-    virtual unsigned char *calculateHashSum(const char *word) = 0;
+    virtual void calculateHashSum(unsigned char **digest,const char *word) = 0;
 
     virtual unsigned int getDigestLength() = 0;
 

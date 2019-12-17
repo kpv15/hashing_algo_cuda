@@ -15,7 +15,7 @@ class MD5_ssl : public IHashingAlgorithm {
 public:
     void setDefaultWordLength(unsigned int) override;
 
-    unsigned char *calculateHashSum(const char *word) override;
+    void calculateHashSum(unsigned char **digest,const char *word) override;
 
     unsigned int getDigestLength() override;
 };

@@ -47,7 +47,7 @@ public:
 
     unsigned int getDigestLength() override;
 
-    unsigned char *calculateHashSum(const char *word) override;
+    void calculateHashSum(unsigned char **digest, const char *word) override;
 
     virtual ~MD5_cpu();
 
