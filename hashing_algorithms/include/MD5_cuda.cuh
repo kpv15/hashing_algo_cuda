@@ -41,59 +41,16 @@ class MD5_cuda : public IHashingAlgorithm {
 
     unsigned int funI(const unsigned int &x, const unsigned int &y, const unsigned int &z);
 
-    unsigned int leftRotate(unsigned int x, unsigned int n) {
-        return (x << n) | (n >> (32 - n));
-    }
+    unsigned int leftRotate(unsigned int x, unsigned int n);
 
 public:
     void setDefaultWordLength(unsigned int i) override;
 
     unsigned int getDigestLength() override;
 
-    unsigned char *calculateHashSum(const char *word) override {
-        createWorkingBuffer(word);
-        mdBuffer = DEFAULT_DIGEST_BUFFER;
-        block stepBuffer;
+    unsigned char *calculateHashSum(const char *word) override;
 
-        for (unsigned int i = 0; i < numberOfChunks; i++) {
-            unsigned int *X = reinterpret_cast<unsigned int *>(workingBuffer + i * 16);
-
-            stepBuffer = mdBuffer;
-
-            unsigned int *a = &stepBuffer.a, *b = &stepBuffer.b, *c = &stepBuffer.c, *d = &stepBuffer.d, *tmp;
-
-            for (unsigned int step = 0; step < 64; step++) {
-                if (step < 16) {
-                    *a = *b + leftRotate((*a + funF(*b, *c, *d) + X[K[step]] + T[step]), S[step]);
-                } else if (step < 32) {
-                    *a = *b + leftRotate((*a + funG(*b, *c, *d) + X[K[step]] + T[step]), S[step]);
-                } else if (step < 48) {
-                    *a = *b + leftRotate((*a + funH(*b, *c, *d) + X[K[step]] + T[step]), S[step]);
-                } else {
-                    *a = *b + leftRotate((*a + funI(*b, *c, *d) + X[K[step]] + T[step]), S[step]);
-                }
-
-                tmp = d;
-                d = c;
-                c = b;
-                b = a;
-                a = tmp;
-            }
-
-            mdBuffer.a += stepBuffer.a;
-            mdBuffer.b += stepBuffer.b;
-            mdBuffer.c += stepBuffer.c;
-            mdBuffer.d += stepBuffer.d;
-        }
-
-        unsigned char *toReturn = new unsigned char[DIGEST_LENGTH];
-        memcpy(toReturn, &mdBuffer, DIGEST_LENGTH);
-        return toReturn;
-    };
-
-    virtual ~
-
-    MD5_cuda();
+    virtual ~MD5_cuda();
 
 };
 

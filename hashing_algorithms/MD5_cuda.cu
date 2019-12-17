@@ -30,7 +30,7 @@ void MD5_cuda::createWorkingBuffer(const char *word) {
     std::memcpy(workingBuffer, word, defaultWordLength);
     workingBuffer[defaultWordLength] = 0b10000000;
     std::memset(workingBuffer + defaultWordLength + 1, 0, workingBufferLength - defaultWordLength - 1 - 8);
-    reinterpret_cast<unsigned long*>(workingBuffer)[workingBufferLength/8-1]=8*defaultWordLength;
+    reinterpret_cast<unsigned long *>(workingBuffer)[workingBufferLength / 8 - 1] = 8 * defaultWordLength;
 }
 
 const MD5_cuda::block MD5_cuda::DEFAULT_DIGEST_BUFFER = {
@@ -67,10 +67,10 @@ const unsigned int MD5_cuda::T[64] = {
 };
 
 const unsigned int MD5_cuda::K[64] = {
-        0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,
-        1,6,11,0,5,10,15,4,9,14,3,8,13,2,7,12,
-        5,8,11,14,1,4,7,10,13,0,3,6,9,12,15,2,
-        0,7,14,5,12,3,10,1,8,15,6,13,4,11,2,9
+        0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
+        1, 6, 11, 0, 5, 10, 15, 4, 9, 14, 3, 8, 13, 2, 7, 12,
+        5, 8, 11, 14, 1, 4, 7, 10, 13, 0, 3, 6, 9, 12, 15, 2,
+        0, 7, 14, 5, 12, 3, 10, 1, 8, 15, 6, 13, 4, 11, 2, 9
 };
 
 MD5_cuda::~MD5_cuda() {
@@ -91,4 +91,49 @@ unsigned int MD5_cuda::funH(const unsigned int &x, const unsigned int &y, const 
 
 unsigned int MD5_cuda::funI(const unsigned int &x, const unsigned int &y, const unsigned int &z) {
     return y ^ (x | (~z));
+}
+
+unsigned int MD5_cuda::leftRotate(unsigned int x, unsigned int n) {
+    return (x << n) | (x >> (32 - n));
+}
+
+unsigned char *MD5_cuda::calculateHashSum(const char *word) {
+    createWorkingBuffer(word);
+    mdBuffer = DEFAULT_DIGEST_BUFFER;
+    block stepBuffer;
+
+    for (unsigned int i = 0; i < numberOfChunks; i++) {
+        unsigned int *X = reinterpret_cast<unsigned int *>(workingBuffer + i * 16);
+
+        stepBuffer = mdBuffer;
+
+        unsigned int *a = &stepBuffer.a, *b = &stepBuffer.b, *c = &stepBuffer.c, *d = &stepBuffer.d, *tmp;
+
+        for (unsigned int step = 0; step < 64; step++) {
+            if (step < 16) {
+                *a = *b + leftRotate((*a + funF(*b, *c, *d) + X[K[step]] + T[step]), S[step]);
+            } else if (step < 32) {
+                *a = *b + leftRotate((*a + funG(*b, *c, *d) + X[K[step]] + T[step]), S[step]);
+            } else if (step < 48) {
+                *a = *b + leftRotate((*a + funH(*b, *c, *d) + X[K[step]] + T[step]), S[step]);
+            } else {
+                *a = *b + leftRotate((*a + funI(*b, *c, *d) + X[K[step]] + T[step]), S[step]);
+            }
+
+            tmp = d;
+            d = c;
+            c = b;
+            b = a;
+            a = tmp;
+        }
+
+        mdBuffer.a += stepBuffer.a;
+        mdBuffer.b += stepBuffer.b;
+        mdBuffer.c += stepBuffer.c;
+        mdBuffer.d += stepBuffer.d;
+    }
+
+    unsigned char *toReturn = new unsigned char[DIGEST_LENGTH];
+    memcpy(toReturn, &mdBuffer, DIGEST_LENGTH);
+    return toReturn;
 }
