@@ -55,10 +55,10 @@ int main(int argc, char **argv) {
                     fileList.push_back(md5SslDigestGenerator->getAlgorithmName()+".hex");
                     delete md5SslDigestGenerator;
                 } else if (!strcmp(argv[i + 1], "md5_cuda")) {
-                    MD5sslDigestGenerator *md5SslDigestGenerator = new MD5sslDigestGenerator();
-                    generateDigests(md5SslDigestGenerator);
-                    fileList.push_back(md5SslDigestGenerator->getAlgorithmName()+".hex");
-                    delete md5SslDigestGenerator;
+                    MD5cudaDigestGenerator *md5cudaDigestGenerator = new MD5cudaDigestGenerator();
+                    generateDigests(md5cudaDigestGenerator);
+                    fileList.push_back(md5cudaDigestGenerator->getAlgorithmName() + ".hex");
+                    delete md5cudaDigestGenerator;
                 }
             } else std::cout << "too few arguments for -g parameters, correct format -g n length" << std::endl;
         }
@@ -131,7 +131,7 @@ void generateDigests(IGenerator *generator) {
     std::cout << "printing results" << std::endl;
     unsigned char **digits = generator->getDigits();
     unsigned int digestLength = generator->getDigestLength();
-    HexParser hexParser(digestLength);//todo resolve parser type problem
+    HexParser hexParser(digestLength);
 
     for (unsigned int i = 0; i < n; i++) {
         char *word = words[i];

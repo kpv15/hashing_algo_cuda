@@ -10,15 +10,17 @@
 #include "IGenerator.h"
 
 class MD5cudaDigestGenerator : public IGenerator {
-    char **words = nullptr;
-    unsigned char **digest = nullptr;
-    unsigned int n = 0;
-    unsigned int length = 0;
+
     MD5_cpu md5Cuda;
 
 public:
     void generate() override {
-
+        md5Cuda.setDefaultWordLength(length_to_gen);
+        initDigest();
+        for (unsigned int i = 0; i < n_to_gen; i++)
+            digest[i] = md5Cuda.calculateHashSum(words[i]);
+        n = n_to_gen;
+        length = length_to_gen;
     }
 
     unsigned int getDigestLength() override;
