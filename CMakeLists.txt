@@ -9,8 +9,8 @@ add_executable(main
         main.cu
         dummy.cpp
         hashing_algorithms/include/IHashingAlgorithm.cuh
-        hashing_algorithms/MD5_cuda.cu
-        hashing_algorithms/include/MD5_cuda.cuh
+        hashing_algorithms/MD5_cpu.cpp
+        hashing_algorithms/include/MD5_cpu.h
         utils/WordsGenerator.cpp
         utils/include/WordsGenerator.h
         hashing_algorithms/MD5_ssl.cpp
@@ -24,6 +24,8 @@ add_executable(main
         utils/include/ResultComparator.h
         hashing_algorithms/MD5cudaDigestGenerator.cu
         hashing_algorithms/include/MD5cudaDigestGenerator.cuh
+        hashing_algorithms/include/MD5_cuda.cuh
+        hashing_algorithms/MD5_cuda.cu
         hashing_algorithms/IGenerator.cpp)
 target_link_libraries(main OpenSSL::SSL)
 
@@ -31,8 +33,10 @@ add_executable(tests
         tests/tests.cpp
         dummy.cpp
         hashing_algorithms/include/IHashingAlgorithm.cuh
-        hashing_algorithms/MD5_cuda.cu
+        hashing_algorithms/MD5_cpu.cpp
+        hashing_algorithms/include/MD5_cpu.h
         hashing_algorithms/include/MD5_cuda.cuh
+        hashing_algorithms/MD5_cuda.cu
         )
 target_link_libraries(main OpenSSL::SSL)
 

@@ -2,13 +2,13 @@
 // Created by grzegorz on 06.11.2019.
 //
 
-#ifndef INYNIERKA_MD5_CUDA_H
-#define INYNIERKA_MD5_CUDA_H
+#ifndef INYNIERKA_MD5_CPU_H
+#define INYNIERKA_MD5_CPU_H
 
 #include <cstring>
 #include "IHashingAlgorithm.cuh"
 
-class MD5_cuda : public IHashingAlgorithm {
+class MD5_cpu : public IHashingAlgorithm {
 
     struct block {
         unsigned int a;
@@ -49,9 +49,9 @@ public:
 
     unsigned char *calculateHashSum(const char *word) override;
 
-    virtual ~MD5_cuda();
+    virtual ~MD5_cpu();
 
 };
 
 
-#endif //INYNIERKA_MD5_CUDA_H
+#endif //INYNIERKA_MD5_CPU_H

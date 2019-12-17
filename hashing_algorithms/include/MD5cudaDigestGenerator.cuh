@@ -6,7 +6,7 @@
 #define INYNIERKA_MD5CUDADIGESTGENERATOR_CUH
 
 
-#include "MD5_cuda.cuh"
+#include "MD5_cpu.h"
 #include "IGenerator.h"
 
 class MD5cudaDigestGenerator : public IGenerator {
@@ -14,7 +14,7 @@ class MD5cudaDigestGenerator : public IGenerator {
     unsigned char **digest = nullptr;
     unsigned int n = 0;
     unsigned int length = 0;
-    MD5_cuda md5Cuda;
+    MD5_cpu md5Cuda;
 
 public:
     void generate() override {
