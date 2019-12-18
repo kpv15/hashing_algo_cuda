@@ -10,21 +10,21 @@ struct block {
     unsigned int d;
 };
 
-__constant__ const block DEFAULT_DIGEST_BUFFER = {
+const block DEFAULT_DIGEST_BUFFER = {
         0x67452301,
         0xefcdab89,
         0x98badcfe,
         0x10325476
 };
 
-__constant__ const unsigned char S[64] = {
+const unsigned char S[64] = {
         7, 12, 17, 22, 7, 12, 17, 22, 7, 12, 17, 22, 7, 12, 17, 22,
         5, 9, 14, 20, 5, 9, 14, 20, 5, 9, 14, 20, 5, 9, 14, 20,
         4, 11, 16, 23, 4, 11, 16, 23, 4, 11, 16, 23, 4, 11, 16, 23,
         6, 10, 15, 21, 6, 10, 15, 21, 6, 10, 15, 21, 6, 10, 15, 21
 };
 
-__constant__ const unsigned int T[64] = {
+const unsigned int T[64] = {
         0xd76aa478, 0xe8c7b756, 0x242070db, 0xc1bdceee,
         0xf57c0faf, 0x4787c62a, 0xa8304613, 0xfd469501,
         0x698098d8, 0x8b44f7af, 0xffff5bb1, 0x895cd7be,
@@ -43,14 +43,14 @@ __constant__ const unsigned int T[64] = {
         0xf7537e82, 0xbd3af235, 0x2ad7d2bb, 0xeb86d391
 };
 
-__constant__ const unsigned int K[64] = {
+const unsigned int K[64] = {
         0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
         1, 6, 11, 0, 5, 10, 15, 4, 9, 14, 3, 8, 13, 2, 7, 12,
         5, 8, 11, 14, 1, 4, 7, 10, 13, 0, 3, 6, 9, 12, 15, 2,
         0, 7, 14, 5, 12, 3, 10, 1, 8, 15, 6, 13, 4, 11, 2, 9
 };
 
-__device__ unsigned char *
+unsigned char *
 createWorkingBuffer(const char *word, unsigned int workingBufferLength, unsigned int wordLength) {
     unsigned char *workingBuffer = new unsigned char[workingBufferLength];
 //    cudaMalloc(&workingBuffer, workingBufferLength);
@@ -61,29 +61,33 @@ createWorkingBuffer(const char *word, unsigned int workingBufferLength, unsigned
     return workingBuffer;
 }
 
-__device__ unsigned int funF(const unsigned int &x, const unsigned int &y, const unsigned int &z) {
+unsigned int funF(const unsigned int &x, const unsigned int &y, const unsigned int &z) {
     return (x & y) | ((~x) & z);
 }
 
-__device__ unsigned int funG(const unsigned int &x, const unsigned int &y, const unsigned int &z) {
+unsigned int funG(const unsigned int &x, const unsigned int &y, const unsigned int &z) {
     return (x & z) | (y & (~z));
 }
 
-__device__ unsigned int funH(const unsigned int &x, const unsigned int &y, const unsigned int &z) {
+unsigned int funH(const unsigned int &x, const unsigned int &y, const unsigned int &z) {
     return x ^ y ^ z;
 }
 
-__device__ unsigned int funI(const unsigned int &x, const unsigned int &y, const unsigned int &z) {
+unsigned int funI(const unsigned int &x, const unsigned int &y, const unsigned int &z) {
     return y ^ (x | (~z));
 }
 
-__device__ unsigned int leftRotate(unsigned int x, unsigned int n) {
+unsigned int leftRotate(unsigned int x, unsigned int n) {
     return (x << n) | (x >> (32 - n));
 }
 
-__global__ void calculateHashSum(unsigned char *&digest, char *&word, unsigned long int workingBufferLength,
-                                 unsigned long int wordLength) {
-    unsigned char *workingBuffer = createWorkingBuffer(word+threadIdx.x+wordLength, workingBufferLength, wordLength);
+static unsigned int wordIndex = 0;
+
+void calculateHashSum(unsigned char *&digest, char *&word, unsigned long int workingBufferLength,
+                      unsigned long int wordLength) {
+
+//    unsigned int wordIndex = threadIdx.x;
+    unsigned char *workingBuffer = createWorkingBuffer(word + wordIndex * wordLength, workingBufferLength, wordLength);
     block mdBuffer = DEFAULT_DIGEST_BUFFER;
     unsigned int numberOfChunks = workingBufferLength / 64;;
 
@@ -119,5 +123,7 @@ __global__ void calculateHashSum(unsigned char *&digest, char *&word, unsigned l
     }
 //    cudaFree(workingBuffer);
     delete[]workingBuffer;
-    memcpy((digest+threadIdx.x*DIGEST_LENGTH), &mdBuffer, DIGEST_LENGTH);
+    memcpy((digest + wordIndex * DIGEST_LENGTH), &mdBuffer, DIGEST_LENGTH);
+
+    wordIndex++;
 }

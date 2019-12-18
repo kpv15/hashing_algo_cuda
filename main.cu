@@ -101,7 +101,7 @@ void generateDigests(IGenerator *generator) {
 
     inputFile >> n;
     inputFile >> length;
-
+    std::cout << "####################" << std::endl;
     std::cout << "start loading words from file: " << DEFAULT_WORD_LIST_OUTPUT_FILE_NAME << std::endl;
 
     char *buffer = new char[length + 1];
@@ -125,7 +125,7 @@ void generateDigests(IGenerator *generator) {
     generator->generate();
     auto stop = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
-    std::cout << "generation complete in: " << duration.count() <<" millisecondsl" << std::endl;
+    std::cout << "generation complete in: " << duration.count() << " millisecondsl" << std::endl;
 
 
     std::string algorithmName = generator->getAlgorithmName();
