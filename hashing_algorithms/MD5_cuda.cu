@@ -1,53 +1,30 @@
-//
-// Created by grzegorz on 06.11.2019.
-//
-
+#include <cstring>
 #include "include/MD5_cuda.cuh"
 
-void MD5_cuda::setDefaultWordLength(unsigned int i) {
-    this->defaultWordLength = i;
-}
+#define DIGEST_LENGTH 16
 
-unsigned int MD5_cuda::getDigestLength() {
-    return DIGEST_LENGTH;
-}
+struct block {
+    unsigned int a;
+    unsigned int b;
+    unsigned int c;
+    unsigned int d;
+};
 
-unsigned int MD5_cuda::calculateWorkingBufferLength() {
-    unsigned int toAdd = 64 - (defaultWordLength + 8) % 64;
-    if (toAdd == 0) toAdd = 64;
-    return defaultWordLength + toAdd + 8;
-}
-
-void MD5_cuda::createWorkingBuffer(const char *word) {
-    unsigned long int calculatedWorkingBufferLength = calculateWorkingBufferLength();
-    if (workingBuffer != nullptr && calculatedWorkingBufferLength != workingBufferLength)
-        delete[] workingBuffer;
-    if (workingBuffer == nullptr) {
-        workingBuffer = new unsigned char[calculatedWorkingBufferLength];
-        workingBufferLength = calculatedWorkingBufferLength;
-        numberOfChunks = workingBufferLength / 64;
-        workingBuffer[defaultWordLength] = 0b10000000;
-        std::memset(workingBuffer + defaultWordLength + 1, 0, workingBufferLength - defaultWordLength - 1 - 8);
-        reinterpret_cast<unsigned long *>(workingBuffer)[workingBufferLength / 8 - 1] = 8 * defaultWordLength;
-    }
-    std::memcpy(workingBuffer, word, defaultWordLength);
-}
-
-const MD5_cuda::block MD5_cuda::DEFAULT_DIGEST_BUFFER = {
+__constant__ const block DEFAULT_DIGEST_BUFFER = {
         0x67452301,
         0xefcdab89,
         0x98badcfe,
         0x10325476
 };
 
-const unsigned char MD5_cuda::S[64] = {
+__constant__ const unsigned char S[64] = {
         7, 12, 17, 22, 7, 12, 17, 22, 7, 12, 17, 22, 7, 12, 17, 22,
         5, 9, 14, 20, 5, 9, 14, 20, 5, 9, 14, 20, 5, 9, 14, 20,
         4, 11, 16, 23, 4, 11, 16, 23, 4, 11, 16, 23, 4, 11, 16, 23,
         6, 10, 15, 21, 6, 10, 15, 21, 6, 10, 15, 21, 6, 10, 15, 21
 };
 
-const unsigned int MD5_cuda::T[64] = {
+__constant__ const unsigned int T[64] = {
         0xd76aa478, 0xe8c7b756, 0x242070db, 0xc1bdceee,
         0xf57c0faf, 0x4787c62a, 0xa8304613, 0xfd469501,
         0x698098d8, 0x8b44f7af, 0xffff5bb1, 0x895cd7be,
@@ -66,40 +43,49 @@ const unsigned int MD5_cuda::T[64] = {
         0xf7537e82, 0xbd3af235, 0x2ad7d2bb, 0xeb86d391
 };
 
-const unsigned int MD5_cuda::K[64] = {
+__constant__ const unsigned int K[64] = {
         0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
         1, 6, 11, 0, 5, 10, 15, 4, 9, 14, 3, 8, 13, 2, 7, 12,
         5, 8, 11, 14, 1, 4, 7, 10, 13, 0, 3, 6, 9, 12, 15, 2,
         0, 7, 14, 5, 12, 3, 10, 1, 8, 15, 6, 13, 4, 11, 2, 9
 };
 
-MD5_cuda::~MD5_cuda() {
-    delete[] workingBuffer;
+__device__ unsigned char *
+createWorkingBuffer(const char *word, unsigned int workingBufferLength, unsigned int wordLength) {
+    unsigned char *workingBuffer = new unsigned char[workingBufferLength];
+//    cudaMalloc(&workingBuffer, workingBufferLength);
+    memcpy(workingBuffer, word, wordLength);
+    workingBuffer[wordLength] = 0b10000000;
+    memset(workingBuffer + wordLength + 1, 0, workingBufferLength - wordLength - 1 - 8);
+    reinterpret_cast<unsigned long *>(workingBuffer)[workingBufferLength / 8 - 1] = 8 * wordLength;
+    return workingBuffer;
 }
 
-unsigned int MD5_cuda::funF(const unsigned int &x, const unsigned int &y, const unsigned int &z) {
+__device__ unsigned int funF(const unsigned int &x, const unsigned int &y, const unsigned int &z) {
     return (x & y) | ((~x) & z);
 }
 
-unsigned int MD5_cuda::funG(const unsigned int &x, const unsigned int &y, const unsigned int &z) {
+__device__ unsigned int funG(const unsigned int &x, const unsigned int &y, const unsigned int &z) {
     return (x & z) | (y & (~z));
 }
 
-unsigned int MD5_cuda::funH(const unsigned int &x, const unsigned int &y, const unsigned int &z) {
+__device__ unsigned int funH(const unsigned int &x, const unsigned int &y, const unsigned int &z) {
     return x ^ y ^ z;
 }
 
-unsigned int MD5_cuda::funI(const unsigned int &x, const unsigned int &y, const unsigned int &z) {
+__device__ unsigned int funI(const unsigned int &x, const unsigned int &y, const unsigned int &z) {
     return y ^ (x | (~z));
 }
 
-unsigned int MD5_cuda::leftRotate(unsigned int x, unsigned int n) {
+__device__ unsigned int leftRotate(unsigned int x, unsigned int n) {
     return (x << n) | (x >> (32 - n));
 }
 
-void MD5_cuda::calculateHashSum(unsigned char **digest, const char *word) {
-    createWorkingBuffer(word);
+__global__ void calculateHashSum(unsigned char **&digest, char **&word, unsigned long int workingBufferLength,
+                                 unsigned long int wordLength) {
+    unsigned char *workingBuffer = createWorkingBuffer(word[threadIdx.x], workingBufferLength, wordLength);
     block mdBuffer = DEFAULT_DIGEST_BUFFER;
+    unsigned int numberOfChunks = workingBufferLength / 64;;
 
     for (unsigned long i = 0; i < numberOfChunks; i++) {
         unsigned int *X = reinterpret_cast<unsigned int *>(workingBuffer + i * 16);
@@ -131,7 +117,7 @@ void MD5_cuda::calculateHashSum(unsigned char **digest, const char *word) {
         mdBuffer.c += stepBuffer.c;
         mdBuffer.d += stepBuffer.d;
     }
-
-    *digest = new unsigned char[DIGEST_LENGTH];
+//    cudaFree(workingBuffer);
+    delete[]workingBuffer;
     memcpy(*digest, &mdBuffer, DIGEST_LENGTH);
 }

@@ -38,7 +38,7 @@ bool ResultComparator::compare() {
                 file->getline(buffer2, length + 1);
                 if (strcmp(buffer, buffer2) != 0) {
                     std::cout << "different data in line " << i << std::endl;
-                    return false; //todo add file closing
+                    return false; //todo add file closing and repair compare
                 }
             }
         }

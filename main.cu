@@ -52,7 +52,7 @@ int main(int argc, char **argv) {
                 if (!strcmp(argv[i + 1], "md5_ssl")) {
                     MD5sslDigestGenerator *md5SslDigestGenerator = new MD5sslDigestGenerator();
                     generateDigests(md5SslDigestGenerator);
-                    fileList.push_back(md5SslDigestGenerator->getAlgorithmName()+".hex");
+                    fileList.push_back(md5SslDigestGenerator->getAlgorithmName() + ".hex");
                     delete md5SslDigestGenerator;
                 } else if (!strcmp(argv[i + 1], "md5_cuda")) {
                     MD5cudaDigestGenerator *md5cudaDigestGenerator = new MD5cudaDigestGenerator();
@@ -124,8 +124,8 @@ void generateDigests(IGenerator *generator) {
     std::cout << "generation complete" << std::endl;
 
     std::string algorithmName = generator->getAlgorithmName();
-    std::ofstream outputDigestHex(algorithmName+".hex");
-    std::ofstream outputDigest(algorithmName+".txt");
+    std::ofstream outputDigestHex(algorithmName + ".hex");
+    std::ofstream outputDigest(algorithmName + ".txt");
 
     std::cout << "open output file: " << algorithmName << std::endl;
     std::cout << "printing results" << std::endl;
@@ -133,25 +133,27 @@ void generateDigests(IGenerator *generator) {
     unsigned int digestLength = generator->getDigestLength();
     HexParser hexParser(digestLength);
 
-    for (unsigned int i = 0; i < n; i++) {
-        char *word = words[i];
-        std::cout << std::string(word, word + length) << "\t" << hexParser(digits[i]) << std::endl;
-        outputDigest << hexParser(digits[i]) << std::endl;
-        outputDigestHex.write((char *) (digits[i]), digestLength);
+    if (digits != nullptr) {
+        for (unsigned int i = 0; i < n; i++) {
+            char *word = words[i];
+            std::cout << std::string(word, word + length) << "\t" << hexParser(digits[i]) << std::endl;
+            outputDigest << hexParser(digits[i]) << std::endl;
+            outputDigestHex.write((char *) (digits[i]), digestLength);
+        }
+
+        std::cout << "output file closed, cleaning memory" << std::endl;
+        for (unsigned int i = 0; i < n; i++) {
+            delete[] words[i];
+            delete[] digits[i];
+        }
+        delete[] words;
+        delete[] digits;
+
+        outputDigest.close();
+        outputDigestHex.close();
+
+        std::cout << "cleaning memory complete" << std::endl;
     }
-
-    std::cout << "output file closed, cleaning memory" << std::endl;
-    for (unsigned int i = 0; i < n; i++) {
-        delete[] words[i];
-        delete[] digits[i];
-    }
-    delete[] words;
-    delete[] digits;
-
-    outputDigest.close();
-    outputDigestHex.close();
-
-    std::cout << "cleaning memory complete" << std::endl;
 }
 
 void compareResults(std::vector<std::string> filesNames) {

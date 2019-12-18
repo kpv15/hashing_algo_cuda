@@ -10,5 +10,5 @@ std::string MD5cudaDigestGenerator::getAlgorithmName() {
 }
 
 unsigned int MD5cudaDigestGenerator::getDigestLength() {
-    return md5Cuda.getDigestLength();
+    return 16;
 }

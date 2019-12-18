@@ -22,7 +22,8 @@ public:
             *output << std::hex
                     << std::setw(2)
                     << std::setfill('0')
-                    << static_cast<unsigned int>(word[i]);
+                    << static_cast<unsigned int>(word[i])
+                    << std::dec;
     }
 
     HexParser &operator()(unsigned char *word) {

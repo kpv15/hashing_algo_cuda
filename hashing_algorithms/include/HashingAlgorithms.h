@@ -7,7 +7,6 @@
 
 #include "IHashingAlgorithm.cuh"
 #include "MD5_cpu.h"
-#include "MD5_cuda.cuh"
 #include "MD5_ssl.h"
 #include "MD5sslDigestGenerator.h"
 #include "IGenerator.h"
