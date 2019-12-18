@@ -81,9 +81,9 @@ __device__ unsigned int leftRotate(unsigned int x, unsigned int n) {
     return (x << n) | (x >> (32 - n));
 }
 
-__global__ void calculateHashSum(unsigned char **&digest, char **&word, unsigned long int workingBufferLength,
+__global__ void calculateHashSum(unsigned char *&digest, char *&word, unsigned long int workingBufferLength,
                                  unsigned long int wordLength) {
-    unsigned char *workingBuffer = createWorkingBuffer(word[threadIdx.x], workingBufferLength, wordLength);
+    unsigned char *workingBuffer = createWorkingBuffer(word+threadIdx.x+wordLength, workingBufferLength, wordLength);
     block mdBuffer = DEFAULT_DIGEST_BUFFER;
     unsigned int numberOfChunks = workingBufferLength / 64;;
 
@@ -119,5 +119,5 @@ __global__ void calculateHashSum(unsigned char **&digest, char **&word, unsigned
     }
 //    cudaFree(workingBuffer);
     delete[]workingBuffer;
-    memcpy(*digest, &mdBuffer, DIGEST_LENGTH);
+    memcpy((digest+threadIdx.x*DIGEST_LENGTH), &mdBuffer, DIGEST_LENGTH);
 }

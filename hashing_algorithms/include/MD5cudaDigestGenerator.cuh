@@ -20,40 +20,35 @@ class MD5cudaDigestGenerator : public IGenerator {
 
 public:
     void generate() override {
-        unsigned char **digestGPU;
-        unsigned char **wordsGPU;
+        unsigned char *digestGPU;
+        char *wordsGPU;
         unsigned int workingBufferLength = calculateWorkingBufferLength(length_to_gen);
-        unsigned int errorCode;
-        if ((errorCode=cudaMalloc(&digestGPU, sizeof(unsigned char *) * n_to_gen)) != cudaSuccess) {
-            std::cout << "error during alloc memory for digest on GPU error code: "<< errorCode << std::endl;
+        cudaError_t errorCode;
+
+        if ((errorCode = cudaMalloc((void **) &digestGPU, sizeof(char) * n_to_gen * getDigestLength())) !=
+            cudaSuccess) {
+            std::cout << "error during alloc memory for digest on GPU error code: " << cudaGetErrorName(errorCode)
+                      << std::endl;
             return;
         };
-        if ((errorCode=cudaMalloc(&wordsGPU, sizeof(unsigned char *) * n_to_gen)) != cudaSuccess) {
-            std::cout << "error during alloc memory for words on GPU error code: "<< errorCode  << std::endl;
+        if ((errorCode = cudaMalloc(&wordsGPU, sizeof(unsigned char *) * n_to_gen * length_to_gen)) != cudaSuccess) {
+            std::cout << "error during alloc memory for words on GPU error code: " << cudaGetErrorName(errorCode)
+                      << std::endl;
             return;
         };
-        digest = new unsigned char*[n_to_gen];
 
         for (unsigned int i = 0; i < n_to_gen; i++) {
-            if ((errorCode=cudaMalloc(&digestGPU[i], sizeof(unsigned char *) * getDigestLength()))!= cudaSuccess) {
-                std::cout << "error during alloc memory for digest on GPU error code: "<< errorCode  << std::endl;
-                return;
-            };
-            if ((errorCode=cudaMalloc(&wordsGPU[i], sizeof(unsigned char) * length_to_gen))!= cudaSuccess) {
-                std::cout << "error during alloc memory for words on GPU error code: "<< errorCode  << std::endl;
-                return;
-            };
-            cudaMemcpy(&wordsGPU[i], words[i], sizeof(unsigned char) * length_to_gen, cudaMemcpyHostToDevice);
-            digest[i] = new unsigned char[length_to_gen];
+            cudaMemcpy(wordsGPU+i*length_to_gen, words[i], sizeof(unsigned char) * length_to_gen, cudaMemcpyHostToDevice);
         }
 
-        calculateHashSum <<<1, n_to_gen>>> (digestGPU, words, workingBufferLength, length_to_gen);
+        calculateHashSum <<< 1, n_to_gen >>> (digestGPU, wordsGPU, workingBufferLength, length_to_gen);
 
+        cudaDeviceSynchronize();
+
+        digest = new unsigned char *[n_to_gen];
         for (unsigned int i = 0; i < n_to_gen; i++) {
-            cudaMemcpy(&digest, digestGPU, sizeof(unsigned char *) * length_to_gen, cudaMemcpyDeviceToHost);
-            cudaFree(digestGPU[i]);
-            cudaFree(wordsGPU[i]);
-            delete[]digest[i];
+            digest[i] = new unsigned char[length_to_gen];
+            cudaMemcpy(digest[i], digestGPU+i*getDigestLength(), sizeof(unsigned char *) * getDigestLength(), cudaMemcpyDeviceToHost);
         }
         cudaFree(digestGPU);
         cudaFree(wordsGPU);

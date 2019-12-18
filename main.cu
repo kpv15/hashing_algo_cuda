@@ -2,6 +2,7 @@
 #include <vector>
 #include <fstream>
 #include <cstring>
+#include <chrono>
 #include "cuda_clion_hack.hpp"
 #include "utils/include/WordsGenerator.h"
 #include "utils/include/HexParser.h"
@@ -120,8 +121,12 @@ void generateDigests(IGenerator *generator) {
     generator->setWords(words, n, length);
 
     std::cout << "start generating digests" << std::endl;
+    auto start = std::chrono::high_resolution_clock::now();
     generator->generate();
-    std::cout << "generation complete" << std::endl;
+    auto stop = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
+    std::cout << "generation complete in: " << duration.count() <<" millisecondsl" << std::endl;
+
 
     std::string algorithmName = generator->getAlgorithmName();
     std::ofstream outputDigestHex(algorithmName + ".hex");
