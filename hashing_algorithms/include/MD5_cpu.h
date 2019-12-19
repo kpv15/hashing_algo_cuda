@@ -6,7 +6,7 @@
 #define INYNIERKA_MD5_CPU_H
 
 #include <cstring>
-#include "IHashingAlgorithm.cuh"
+#include "IHashingAlgorithm.h"
 
 class MD5_cpu : public IHashingAlgorithm {
 

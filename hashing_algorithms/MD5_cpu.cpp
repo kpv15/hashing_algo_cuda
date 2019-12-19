@@ -102,7 +102,7 @@ void MD5_cpu::calculateHashSum(unsigned char **digest, const char *word) {
     block mdBuffer = DEFAULT_DIGEST_BUFFER;
 
     for (unsigned long i = 0; i < numberOfChunks; i++) {
-        unsigned int *X = reinterpret_cast<unsigned int *>(workingBuffer + i * 16);
+        auto *X = reinterpret_cast<unsigned int *>(workingBuffer + i * 16 * sizeof(unsigned int));
 
         block stepBuffer = mdBuffer;
 

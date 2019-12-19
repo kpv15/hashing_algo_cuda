@@ -50,16 +50,21 @@ __constant__ const unsigned int K[64] = {
         0, 7, 14, 5, 12, 3, 10, 1, 8, 15, 6, 13, 4, 11, 2, 9
 };
 
+__device__ void
+updateWorkingBuffer(unsigned char *&workingBuffer, const char *word, unsigned int wordLength) {
+    memcpy(workingBuffer, word, wordLength);
+}
+
 __device__ unsigned char *
-createWorkingBuffer(const char *word, unsigned int workingBufferLength, unsigned int wordLength) {
+createWorkingBuffer(unsigned long int workingBufferLength, unsigned int wordLength) {
     unsigned char *workingBuffer = new unsigned char[workingBufferLength];
 //    cudaMalloc(&workingBuffer, workingBufferLength);
-    memcpy(workingBuffer, word, wordLength);
     workingBuffer[wordLength] = 0b10000000;
     memset(workingBuffer + wordLength + 1, 0, workingBufferLength - wordLength - 1 - 8);
     reinterpret_cast<unsigned long *>(workingBuffer)[workingBufferLength / 8 - 1] = 8 * wordLength;
     return workingBuffer;
 }
+
 
 __device__ unsigned int funF(const unsigned int &x, const unsigned int &y, const unsigned int &z) {
     return (x & y) | ((~x) & z);
@@ -82,43 +87,48 @@ __device__ unsigned int leftRotate(unsigned int x, unsigned int n) {
 }
 
 __global__ void calculateHashSum(unsigned char *digest, char *word, unsigned long int workingBufferLength,
-                      unsigned long int wordLength) {
+                                 unsigned long int wordLength, unsigned long int n) {
 
-    unsigned int wordIndex = threadIdx.x;
-    unsigned char *workingBuffer = createWorkingBuffer(word + wordIndex * wordLength, workingBufferLength, wordLength);
-    block mdBuffer = DEFAULT_DIGEST_BUFFER;
+    unsigned long int wordIndex = threadIdx.x;
+    unsigned char *workingBuffer = createWorkingBuffer(workingBufferLength, wordLength);
     unsigned int numberOfChunks = workingBufferLength / 64;
 
-    for (unsigned long i = 0; i < numberOfChunks; i++) {
-        unsigned int *X = reinterpret_cast<unsigned int *>(workingBuffer + i * 16 * sizeof(unsigned int));
+    while (wordIndex < n) {
+        block mdBuffer = DEFAULT_DIGEST_BUFFER;
 
-        block stepBuffer = mdBuffer;
+        for (unsigned long i = 0; i < numberOfChunks; i++) {
+            updateWorkingBuffer(workingBuffer, word + wordIndex * wordLength, wordLength);
+            unsigned int *X = reinterpret_cast<unsigned int *>(workingBuffer + i * 16 * sizeof(unsigned int));
 
-        unsigned int *a = &stepBuffer.a, *b = &stepBuffer.b, *c = &stepBuffer.c, *d = &stepBuffer.d, *tmp;
+            block stepBuffer = mdBuffer;
 
-        for (unsigned int step = 0; step < 64; step++) {
-            if (step < 16) {
-                *a = *b + leftRotate((*a + funF(*b, *c, *d) + X[K[step]] + T[step]), S[step]);
-            } else if (step < 32) {
-                *a = *b + leftRotate((*a + funG(*b, *c, *d) + X[K[step]] + T[step]), S[step]);
-            } else if (step < 48) {
-                *a = *b + leftRotate((*a + funH(*b, *c, *d) + X[K[step]] + T[step]), S[step]);
-            } else {
-                *a = *b + leftRotate((*a + funI(*b, *c, *d) + X[K[step]] + T[step]), S[step]);
+            unsigned int *a = &stepBuffer.a, *b = &stepBuffer.b, *c = &stepBuffer.c, *d = &stepBuffer.d, *tmp;
+
+            for (unsigned int step = 0; step < 64; step++) {
+                if (step < 16) {
+                    *a = *b + leftRotate((*a + funF(*b, *c, *d) + X[K[step]] + T[step]), S[step]);
+                } else if (step < 32) {
+                    *a = *b + leftRotate((*a + funG(*b, *c, *d) + X[K[step]] + T[step]), S[step]);
+                } else if (step < 48) {
+                    *a = *b + leftRotate((*a + funH(*b, *c, *d) + X[K[step]] + T[step]), S[step]);
+                } else {
+                    *a = *b + leftRotate((*a + funI(*b, *c, *d) + X[K[step]] + T[step]), S[step]);
+                }
+
+                tmp = d;
+                d = c;
+                c = b;
+                b = a;
+                a = tmp;
             }
 
-            tmp = d;
-            d = c;
-            c = b;
-            b = a;
-            a = tmp;
+            mdBuffer.a += stepBuffer.a;
+            mdBuffer.b += stepBuffer.b;
+            mdBuffer.c += stepBuffer.c;
+            mdBuffer.d += stepBuffer.d;
         }
-
-        mdBuffer.a += stepBuffer.a;
-        mdBuffer.b += stepBuffer.b;
-        mdBuffer.c += stepBuffer.c;
-        mdBuffer.d += stepBuffer.d;
+        memcpy((digest + wordIndex * DIGEST_LENGTH), &mdBuffer, DIGEST_LENGTH);
+        wordIndex += 1024;
     }
     delete[]workingBuffer;
-    memcpy((digest + wordIndex * DIGEST_LENGTH), &mdBuffer, DIGEST_LENGTH);
 }

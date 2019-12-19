@@ -11,7 +11,7 @@
 
 const std::string DEFAULT_WORD_LIST_OUTPUT_FILE_NAME = "words";
 
-void generateWords(const unsigned int n, const unsigned int length);
+void generateWords(unsigned int n, unsigned int length);
 
 void generateDigests(IGenerator *generator);
 
@@ -51,15 +51,20 @@ int main(int argc, char **argv) {
         if (!strcmp(argv[i], "-d")) {
             if (argc >= i + 1) {
                 if (!strcmp(argv[i + 1], "md5_ssl")) {
-                    MD5sslDigestGenerator *md5SslDigestGenerator = new MD5sslDigestGenerator();
+                    auto *md5SslDigestGenerator = new MD5sslDigestGenerator();
                     generateDigests(md5SslDigestGenerator);
                     fileList.push_back(md5SslDigestGenerator->getAlgorithmName() + ".hex");
                     delete md5SslDigestGenerator;
                 } else if (!strcmp(argv[i + 1], "md5_cuda")) {
-                    MD5cudaDigestGenerator *md5cudaDigestGenerator = new MD5cudaDigestGenerator();
+                    auto *md5cudaDigestGenerator = new MD5cudaDigestGenerator();
                     generateDigests(md5cudaDigestGenerator);
                     fileList.push_back(md5cudaDigestGenerator->getAlgorithmName() + ".hex");
                     delete md5cudaDigestGenerator;
+                } else if (!strcmp(argv[i + 1], "md5_cpu")) {
+                    auto *md5cpuDigestGenerator = new MD5cpuDigestGenerator();
+                    generateDigests(md5cpuDigestGenerator);
+                    fileList.push_back(md5cpuDigestGenerator->getAlgorithmName() + ".hex");
+                    delete md5cpuDigestGenerator;
                 }
             } else std::cout << "too few arguments for -g parameters, correct format -g n length" << std::endl;
         }
@@ -125,7 +130,7 @@ void generateDigests(IGenerator *generator) {
     generator->generate();
     auto stop = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
-    std::cout << "generation complete in: " << duration.count() << " millisecondsl" << std::endl;
+    std::cout << "generation complete in: " << duration.count() << " milliseconds" << std::endl;
 
 
     std::string algorithmName = generator->getAlgorithmName();

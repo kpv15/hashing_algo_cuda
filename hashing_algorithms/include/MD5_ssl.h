@@ -5,7 +5,7 @@
 #ifndef INYNIERKA_MD5_SSL_H
 #define INYNIERKA_MD5_SSL_H
 
-#include "IHashingAlgorithm.cuh"
+#include "IHashingAlgorithm.h"
 
 
 class MD5_ssl : public IHashingAlgorithm {

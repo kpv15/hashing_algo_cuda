@@ -10,12 +10,12 @@ set(UTILS_SOURCE
         utils/include/HexParser.h
         utils/include/ResultComparator.h
         utils/WordsGenerator.cpp
-        utils/ResultComparator.cpp)
+        utils/ResultComparator.cpp hashing_algorithms/MD5cpuDigestGenerator.cpp hashing_algorithms/include/MD5cpuDigestGenerator.h)
 
 add_executable(main
-        main.cu
+        main.cpp
         dummy.cpp
-        hashing_algorithms/include/IHashingAlgorithm.cuh
+        hashing_algorithms/include/IHashingAlgorithm.h
         hashing_algorithms/MD5_cpu.cpp
         hashing_algorithms/include/MD5_cpu.h
         hashing_algorithms/MD5_ssl.cpp
@@ -36,7 +36,7 @@ target_link_libraries(main OpenSSL::SSL)
 add_executable(tests
         tests/tests.cu
         dummy.cpp
-        hashing_algorithms/include/IHashingAlgorithm.cuh
+        hashing_algorithms/include/IHashingAlgorithm.h
         hashing_algorithms/MD5_cpu.cpp
         hashing_algorithms/include/MD5_cpu.h
         hashing_algorithms/MD5_cuda.cu)
