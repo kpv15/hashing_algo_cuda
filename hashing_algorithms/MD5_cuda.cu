@@ -90,7 +90,7 @@ __global__ void calculateHashSum(unsigned char *digest, char *word, unsigned lon
     unsigned int numberOfChunks = workingBufferLength / 64;
 
     for (unsigned long i = 0; i < numberOfChunks; i++) {
-        unsigned int *X = reinterpret_cast<unsigned int *>(workingBuffer + i * 16);
+        unsigned int *X = reinterpret_cast<unsigned int *>(workingBuffer + i * 16 * sizeof(unsigned int));
 
         block stepBuffer = mdBuffer;
 
