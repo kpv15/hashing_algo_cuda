@@ -146,7 +146,7 @@ void generateDigests(IGenerator *generator) {
     if (digits != nullptr) {
         for (unsigned int i = 0; i < n; i++) {
             char *word = words[i];
-            std::cout << std::string(word, word + length) << "\t" << hexParser(digits[i]) << std::endl;
+            std::cout <<  std::string(word, word + length) << "\t" << hexParser(digits[i]) << std::endl;
             outputDigest << hexParser(digits[i]) << std::endl;
             outputDigestHex.write((char *) (digits[i]), digestLength);
         }
