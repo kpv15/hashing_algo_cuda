@@ -51,18 +51,14 @@ __constant__ const unsigned int K[64] = {
 };
 
 __device__ void
-updateWorkingBuffer(unsigned char *&workingBuffer, const char *word, unsigned int wordLength) {
+updateWorkingBuffer(unsigned char *workingBuffer, const char *word, unsigned int wordLength) {
     memcpy(workingBuffer, word, wordLength);
 }
 
-__device__ unsigned char *
-createWorkingBuffer(unsigned long int workingBufferLength, unsigned int wordLength) {
-    unsigned char *workingBuffer = new unsigned char[workingBufferLength];
-//    cudaMalloc(&workingBuffer, workingBufferLength);
+__device__ void createWorkingBuffer(unsigned char *workingBuffer, unsigned long int workingBufferLength, unsigned int wordLength) {
     workingBuffer[wordLength] = 0b10000000;
     memset(workingBuffer + wordLength + 1, 0, workingBufferLength - wordLength - 1 - 8);
     reinterpret_cast<unsigned long *>(workingBuffer)[workingBufferLength / 8 - 1] = 8 * wordLength;
-    return workingBuffer;
 }
 
 
@@ -90,7 +86,8 @@ __global__ void calculateHashSum(unsigned char *digest, char *word, unsigned lon
                                  unsigned long int wordLength, unsigned long int n) {
 
     unsigned long int wordIndex = threadIdx.x;
-    unsigned char *workingBuffer = createWorkingBuffer(workingBufferLength, wordLength);
+    unsigned char workingBuffer[2000];
+    createWorkingBuffer(workingBuffer,workingBufferLength, wordLength);
     unsigned int numberOfChunks = workingBufferLength / 64;
 
     while (wordIndex < n) {
@@ -130,5 +127,4 @@ __global__ void calculateHashSum(unsigned char *digest, char *word, unsigned lon
         memcpy((digest + wordIndex * DIGEST_LENGTH), &mdBuffer, DIGEST_LENGTH);
         wordIndex += 1024;
     }
-    delete[]workingBuffer;
 }

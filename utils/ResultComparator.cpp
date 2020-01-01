@@ -13,33 +13,39 @@ bool ResultComparator::compare() {
     unsigned int length = 0, current_length = 0;
 
     std::cout << "opening and checking file sizes" << std::endl;
-    for (auto &fileName:filesNames) {
-        auto *file = new std::ifstream(fileName);
+    for (unsigned int i = 0; i < filesNames.size(); i++) {
+        auto *file = new std::ifstream(filesNames[i]);
 
         *file >> current_n;
         *file >> current_length;
 
-        if ((current_length != length && length > 0) || (current_n != n && n > 0)) {
+        if (i != 0 && ((current_length != length && length > 0) || (current_n != n && n > 0))) {
             std::cout << "files have different sizes" << std::endl;
             return false; //todo add file closing
+        } else {
+            n = current_n;
+            length = current_length;
         }
         files.push_back(file);
     }
+
     std::cout << "comparing file contexts" << std::endl;
 
-    char *buffer = new char[length + 1];
-    char *buffer2 = new char[length + 1];
-    strcpy(buffer, "");
+    unsigned int files_n = files.size();
+    char **buffer = new char *[files_n];
+    for (unsigned int i = 0; i < files_n; i++) {
+        buffer[i] = new char[length + 1];
+        strcpy(buffer[i], "");
+    }
     for (unsigned int i = 0; i < n + 1; i++) {
-        for (auto file:files) {
-            if (strcmp(buffer, "") != 0)
-                file->getline(buffer, length + 1);
-            else {
-                file->getline(buffer2, length + 1);
-                if (strcmp(buffer, buffer2) != 0) {
-                    std::cout << "different data in line " << i << std::endl;
-                    return false; //todo add file closing and repair compare
-                }
+        for (unsigned int j = 0; j < files_n; j++) {
+            files[j]->getline(buffer[j], length + 1);
+        }
+        if (i == 0) continue;
+        for (unsigned int j = 1; j < files_n; j++) {
+            if (strcmp(buffer[0], buffer[j]) != 0) {
+                std::cout << "different data in line " << i + 1 << std::endl;
+                return false; //todo add file closing and repair compare
             }
         }
     }
@@ -51,7 +57,9 @@ bool ResultComparator::compare() {
         delete file;
     }
     files.clear();
+    for (unsigned int i = 0; i < files_n; i++)
+        delete[] buffer[i];
     delete[] buffer;
-    delete[] buffer2;
+
     return true;
 }

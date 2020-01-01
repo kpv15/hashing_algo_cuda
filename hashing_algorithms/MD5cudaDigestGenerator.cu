@@ -22,6 +22,10 @@ void MD5cudaDigestGenerator::generate() {
     auto startLoad = std::chrono::high_resolution_clock::now();
 
     unsigned long int workingBufferLength = calculateWorkingBufferLength(length_to_gen);
+    if(workingBufferLength>2000){
+        std::cout << "error workingBufferLength > 2000 " <<std::endl;
+        return;
+    }
     cudaError_t errorCode;
 
     if ((errorCode = cudaMalloc((void **) &digestGPU, sizeof(unsigned char) * n_to_gen * getDigestLength())) != cudaSuccess) {

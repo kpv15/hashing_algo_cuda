@@ -53,17 +53,17 @@ int main(int argc, char **argv) {
                 if (!strcmp(argv[i + 1], "md5_ssl")) {
                     auto *md5SslDigestGenerator = new MD5sslDigestGenerator();
                     generateDigests(md5SslDigestGenerator);
-                    fileList.push_back(md5SslDigestGenerator->getAlgorithmName() + ".hex");
+                    fileList.push_back(md5SslDigestGenerator->getAlgorithmName() + ".txt");
                     delete md5SslDigestGenerator;
                 } else if (!strcmp(argv[i + 1], "md5_cuda")) {
                     auto *md5cudaDigestGenerator = new MD5cudaDigestGenerator();
                     generateDigests(md5cudaDigestGenerator);
-                    fileList.push_back(md5cudaDigestGenerator->getAlgorithmName() + ".hex");
+                    fileList.push_back(md5cudaDigestGenerator->getAlgorithmName() + ".txt");
                     delete md5cudaDigestGenerator;
                 } else if (!strcmp(argv[i + 1], "md5_cpu")) {
                     auto *md5cpuDigestGenerator = new MD5cpuDigestGenerator();
                     generateDigests(md5cpuDigestGenerator);
-                    fileList.push_back(md5cpuDigestGenerator->getAlgorithmName() + ".hex");
+                    fileList.push_back(md5cpuDigestGenerator->getAlgorithmName() + ".txt");
                     delete md5cpuDigestGenerator;
                 }
             } else std::cout << "too few arguments for -g parameters, correct format -g n length" << std::endl;
@@ -143,16 +143,18 @@ void generateDigests(IGenerator *generator) {
     unsigned int digestLength = generator->getDigestLength();
     HexParser hexParser(digestLength);
 
+    outputDigest << n << "\t" << length << std::endl;
+
     if (digits != nullptr) {
-        for (unsigned int i = 0; i < n; i++) {
+        for (unsigned long int i = 0; i < n; i++) {
             char *word = words[i];
-            std::cout <<  std::string(word, word + length) << "\t" << hexParser(digits[i]) << std::endl;
+//            std::cout <<  std::string(word, word + length) << "\t" << hexParser(digits[i]) << std::endl;
             outputDigest << hexParser(digits[i]) << std::endl;
-            outputDigestHex.write((char *) (digits[i]), digestLength);
+//            outputDigestHex.write((char *) (digits[i]), digestLength);
         }
 
         std::cout << "output file closed, cleaning memory" << std::endl;
-        for (unsigned int i = 0; i < n; i++) {
+        for (unsigned long int i = 0; i < n; i++) {
             delete[] words[i];
             delete[] digits[i];
         }
