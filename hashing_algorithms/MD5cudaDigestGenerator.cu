@@ -6,6 +6,7 @@
 #include "include/MD5cudaDigestGenerator.cuh"
 #include <iostream>
 #include <chrono>
+#include <cstring>
 
 std::string MD5cudaDigestGenerator::getAlgorithmName() {
     return "md5_cuda";
@@ -39,9 +40,13 @@ void MD5cudaDigestGenerator::generate() {
         return;
     };
 
+    char *words_tmp = new char [length_to_gen*n_to_gen];
     for (unsigned int i = 0; i < n_to_gen; i++) {
-        cudaMemcpy(wordsGPU+i*length_to_gen, words[i], sizeof(unsigned char) * length_to_gen, cudaMemcpyHostToDevice);
+        memcpy(words_tmp+i*length_to_gen,words[i],sizeof(unsigned char) * length_to_gen);
     }
+
+    cudaMemcpy(wordsGPU, words_tmp, sizeof(unsigned char) * length_to_gen*n_to_gen, cudaMemcpyHostToDevice);
+    delete[] words_tmp;
 
     auto stopLoad = std::chrono::high_resolution_clock::now();
     auto durationLoad = std::chrono::duration_cast<std::chrono::milliseconds>(stopLoad - startLoad);
@@ -60,10 +65,15 @@ void MD5cudaDigestGenerator::generate() {
     auto startUnload = std::chrono::high_resolution_clock::now();
 
     digest = new unsigned char *[n_to_gen];
+    unsigned char *digest_tmp = new unsigned char[n_to_gen*getDigestLength()];
+    cudaMemcpy(digest_tmp, digestGPU, sizeof(unsigned char) * getDigestLength() * n_to_gen, cudaMemcpyDeviceToHost);
+
     for (unsigned int i = 0; i < n_to_gen; i++) {
         digest[i] = new unsigned char[ getDigestLength()];
-        cudaMemcpy(digest[i], digestGPU+i*getDigestLength(), sizeof(unsigned char) * getDigestLength(), cudaMemcpyDeviceToHost);
+        memcpy(digest[i],digest_tmp+i*getDigestLength(),getDigestLength());
     }
+
+    delete[] digest_tmp;
     cudaFree(digestGPU);
     cudaFree(wordsGPU);
     auto stopUnload = std::chrono::high_resolution_clock::now();
