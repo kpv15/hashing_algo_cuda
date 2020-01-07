@@ -11,38 +11,13 @@ struct block {
     uint32_t d;
 };
 
-__constant__ const block DEFAULT_DIGEST_BUFFER = {
+__constant__  const block DEFAULT_DIGEST_BUFFER = {
         0x67452301,
         0xefcdab89,
         0x98badcfe,
         0x10325476
 };
 
-__constant__ const unsigned char S[64] = {
-        7, 12, 17, 22, 7, 12, 17, 22, 7, 12, 17, 22, 7, 12, 17, 22,
-        5, 9, 14, 20, 5, 9, 14, 20, 5, 9, 14, 20, 5, 9, 14, 20,
-        4, 11, 16, 23, 4, 11, 16, 23, 4, 11, 16, 23, 4, 11, 16, 23,
-        6, 10, 15, 21, 6, 10, 15, 21, 6, 10, 15, 21, 6, 10, 15, 21
-};
-
-__constant__ const uint32_t T[64] = {
-        0xd76aa478, 0xe8c7b756, 0x242070db, 0xc1bdceee,
-        0xf57c0faf, 0x4787c62a, 0xa8304613, 0xfd469501,
-        0x698098d8, 0x8b44f7af, 0xffff5bb1, 0x895cd7be,
-        0x6b901122, 0xfd987193, 0xa679438e, 0x49b40821,
-        0xf61e2562, 0xc040b340, 0x265e5a51, 0xe9b6c7aa,
-        0xd62f105d, 0x02441453, 0xd8a1e681, 0xe7d3fbc8,
-        0x21e1cde6, 0xc33707d6, 0xf4d50d87, 0x455a14ed,
-        0xa9e3e905, 0xfcefa3f8, 0x676f02d9, 0x8d2a4c8a,
-        0xfffa3942, 0x8771f681, 0x6d9d6122, 0xfde5380c,
-        0xa4beea44, 0x4bdecfa9, 0xf6bb4b60, 0xbebfbc70,
-        0x289b7ec6, 0xeaa127fa, 0xd4ef3085, 0x04881d05,
-        0xd9d4d039, 0xe6db99e5, 0x1fa27cf8, 0xc4ac5665,
-        0xf4292244, 0x432aff97, 0xab9423a7, 0xfc93a039,
-        0x655b59c3, 0x8f0ccc92, 0xffeff47d, 0x85845dd1,
-        0x6fa87e4f, 0xfe2ce6e0, 0xa3014314, 0x4e0811a1,
-        0xf7537e82, 0xbd3af235, 0x2ad7d2bb, 0xeb86d391
-};
 
 __constant__ const uint32_t K[64] = {
         0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
@@ -100,25 +75,75 @@ __global__ void calculateHashSum(unsigned char *digest, char *word, unsigned lon
 
             block stepBuffer = mdBuffer;
 
-            uint32_t *a = &stepBuffer.a, *b = &stepBuffer.b, *c = &stepBuffer.c, *d = &stepBuffer.d, *tmp;
+            uint32_t *a = &stepBuffer.a, *b = &stepBuffer.b, *c = &stepBuffer.c, *d = &stepBuffer.d;
 
-            for (unsigned int step = 0; step < 64; step++) {
-                if (step < 16) {
-                    *a = *b + leftRotate((*a + funF(*b, *c, *d) + X[K[step]] + T[step]), S[step]);
-                } else if (step < 32) {
-                    *a = *b + leftRotate((*a + funG(*b, *c, *d) + X[K[step]] + T[step]), S[step]);
-                } else if (step < 48) {
-                    *a = *b + leftRotate((*a + funH(*b, *c, *d) + X[K[step]] + T[step]), S[step]);
-                } else {
-                    *a = *b + leftRotate((*a + funI(*b, *c, *d) + X[K[step]] + T[step]), S[step]);
-                }
+            *a = *b + leftRotate((*a + funF(*b, *c, *d) + X[0] + 0xd76aa478), 7);
+            *d = *a + leftRotate((*d + funF(*a, *b, *c) + X[1] + 0xe8c7b756), 12);
+            *c = *d + leftRotate((*c + funF(*d, *a, *b) + X[2] + 0x242070db), 17);
+            *b = *c + leftRotate((*b + funF(*c, *d, *a) + X[3] + 0xc1bdceee), 22);
+            *a = *b + leftRotate((*a + funF(*b, *c, *d) + X[4] + 0xf57c0faf), 7);
+            *d = *a + leftRotate((*d + funF(*a, *b, *c) + X[5] + 0x4787c62a), 12);
+            *c = *d + leftRotate((*c + funF(*d, *a, *b) + X[6] + 0xa8304613), 17);
+            *b = *c + leftRotate((*b + funF(*c, *d, *a) + X[7] + 0xfd469501), 22);
+            *a = *b + leftRotate((*a + funF(*b, *c, *d) + X[8] + 0x698098d8), 7);
+            *d = *a + leftRotate((*d + funF(*a, *b, *c) + X[9] + 0x8b44f7af), 12);
+            *c = *d + leftRotate((*c + funF(*d, *a, *b) + X[10] + 0xffff5bb1), 17);
+            *b = *c + leftRotate((*b + funF(*c, *d, *a) + X[11] + 0x895cd7be), 22);
+            *a = *b + leftRotate((*a + funF(*b, *c, *d) + X[12] + 0x6b901122), 7);
+            *d = *a + leftRotate((*d + funF(*a, *b, *c) + X[13] + 0xfd987193), 12);
+            *c = *d + leftRotate((*c + funF(*d, *a, *b) + X[14] + 0xa679438e), 17);
+            *b = *c + leftRotate((*b + funF(*c, *d, *a) + X[15] + 0x49b40821), 22);
 
-                tmp = d;
-                d = c;
-                c = b;
-                b = a;
-                a = tmp;
-            }
+            *a = *b + leftRotate((*a + funG(*b, *c, *d) + X[1] + 0xf61e2562), 5);
+            *d = *a + leftRotate((*d + funG(*a, *b, *c) + X[6] + 0xc040b340), 9);
+            *c = *d + leftRotate((*c + funG(*d, *a, *b) + X[11] + 0x265e5a51), 14);
+            *b = *c + leftRotate((*b + funG(*c, *d, *a) + X[0] + 0xe9b6c7aa), 20);
+            *a = *b + leftRotate((*a + funG(*b, *c, *d) + X[5] + 0xd62f105d), 5);
+            *d = *a + leftRotate((*d + funG(*a, *b, *c) + X[10] + 0x02441453), 9);
+            *c = *d + leftRotate((*c + funG(*d, *a, *b) + X[15] + 0xd8a1e681), 14);
+            *b = *c + leftRotate((*b + funG(*c, *d, *a) + X[4] + 0xe7d3fbc8), 20);
+            *a = *b + leftRotate((*a + funG(*b, *c, *d) + X[9] + 0x21e1cde6), 5);
+            *d = *a + leftRotate((*d + funG(*a, *b, *c) + X[14] + 0xc33707d6), 9);
+            *c = *d + leftRotate((*c + funG(*d, *a, *b) + X[3] + 0xf4d50d87), 14);
+            *b = *c + leftRotate((*b + funG(*c, *d, *a) + X[8] + 0x455a14ed), 20);
+            *a = *b + leftRotate((*a + funG(*b, *c, *d) + X[13] + 0xa9e3e905), 5);
+            *d = *a + leftRotate((*d + funG(*a, *b, *c) + X[2] + 0xfcefa3f8), 9);
+            *c = *d + leftRotate((*c + funG(*d, *a, *b) + X[7] + 0x676f02d9), 14);
+            *b = *c + leftRotate((*b + funG(*c, *d, *a) + X[12] + 0x8d2a4c8a), 20);
+
+            *a = *b + leftRotate((*a + funH(*b, *c, *d) + X[5] + 0xfffa3942), 4);
+            *d = *a + leftRotate((*d + funH(*a, *b, *c) + X[8] + 0x8771f681), 11);
+            *c = *d + leftRotate((*c + funH(*d, *a, *b) + X[11] + 0x6d9d6122), 16);
+            *b = *c + leftRotate((*b + funH(*c, *d, *a) + X[14] + 0xfde5380c), 23);
+            *a = *b + leftRotate((*a + funH(*b, *c, *d) + X[1] + 0xa4beea44), 4);
+            *d = *a + leftRotate((*d + funH(*a, *b, *c) + X[4] + 0x4bdecfa9), 11);
+            *c = *d + leftRotate((*c + funH(*d, *a, *b) + X[7] + 0xf6bb4b60), 16);
+            *b = *c + leftRotate((*b + funH(*c, *d, *a) + X[10] + 0xbebfbc70), 23);
+            *a = *b + leftRotate((*a + funH(*b, *c, *d) + X[13] + 0x289b7ec6), 4);
+            *d = *a + leftRotate((*d + funH(*a, *b, *c) + X[0] + 0xeaa127fa), 11);
+            *c = *d + leftRotate((*c + funH(*d, *a, *b) + X[3] + 0xd4ef3085), 16);
+            *b = *c + leftRotate((*b + funH(*c, *d, *a) + X[6] + 0x04881d05), 23);
+            *a = *b + leftRotate((*a + funH(*b, *c, *d) + X[9] + 0xd9d4d039), 4);
+            *d = *a + leftRotate((*d + funH(*a, *b, *c) + X[12] + 0xe6db99e5), 11);
+            *c = *d + leftRotate((*c + funH(*d, *a, *b) + X[15] + 0x1fa27cf8), 16);
+            *b = *c + leftRotate((*b + funH(*c, *d, *a) + X[2] + 0xc4ac5665), 23);
+
+            *a = *b + leftRotate((*a + funI(*b, *c, *d) + X[0] + 0xf4292244), 6);
+            *d = *a + leftRotate((*d + funI(*a, *b, *c) + X[7] + 0x432aff97), 10);
+            *c = *d + leftRotate((*c + funI(*d, *a, *b) + X[14] + 0xab9423a7), 15);
+            *b = *c + leftRotate((*b + funI(*c, *d, *a) + X[5] + 0xfc93a039), 21);
+            *a = *b + leftRotate((*a + funI(*b, *c, *d) + X[12] + 0x655b59c3), 6);
+            *d = *a + leftRotate((*d + funI(*a, *b, *c) + X[3] + 0x8f0ccc92), 10);
+            *c = *d + leftRotate((*c + funI(*d, *a, *b) + X[10] + 0xffeff47d), 15);
+            *b = *c + leftRotate((*b + funI(*c, *d, *a) + X[1] + 0x85845dd1), 21);
+            *a = *b + leftRotate((*a + funI(*b, *c, *d) + X[8] + 0x6fa87e4f), 6);
+            *d = *a + leftRotate((*d + funI(*a, *b, *c) + X[15] + 0xfe2ce6e0), 10);
+            *c = *d + leftRotate((*c + funI(*d, *a, *b) + X[6] + 0xa3014314), 15);
+            *b = *c + leftRotate((*b + funI(*c, *d, *a) + X[13] + 0x4e0811a1), 21);
+            *a = *b + leftRotate((*a + funI(*b, *c, *d) + X[4] + 0xf7537e82), 6);
+            *d = *a + leftRotate((*d + funI(*a, *b, *c) + X[11] + 0xbd3af235), 10);
+            *c = *d + leftRotate((*c + funI(*d, *a, *b) + X[2] + 0x2ad7d2bb), 15);
+            *b = *c + leftRotate((*b + funI(*c, *d, *a) + X[9] + 0xeb86d391), 21);
 
             mdBuffer.a += stepBuffer.a;
             mdBuffer.b += stepBuffer.b;
