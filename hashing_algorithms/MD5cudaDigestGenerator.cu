@@ -7,6 +7,7 @@
 #include <iostream>
 #include <chrono>
 #include <cstring>
+#include <cmath>
 
 std::string MD5cudaDigestGenerator::getAlgorithmName() {
     return "md5_cuda";
@@ -23,13 +24,14 @@ void MD5cudaDigestGenerator::generate() {
     auto startLoad = std::chrono::high_resolution_clock::now();
 
     unsigned long int workingBufferLength = calculateWorkingBufferLength(length_to_gen);
-    if(workingBufferLength>2000){
-        std::cout << "error workingBufferLength > 2000 " <<std::endl;
+    if (workingBufferLength > 2000) {
+        std::cout << "error workingBufferLength > 2000 " << std::endl;
         return;
     }
     cudaError_t errorCode;
 
-    if ((errorCode = cudaMalloc((void **) &digestGPU, sizeof(unsigned char) * n_to_gen * getDigestLength())) != cudaSuccess) {
+    if ((errorCode = cudaMalloc((void **) &digestGPU, sizeof(unsigned char) * n_to_gen * getDigestLength())) !=
+        cudaSuccess) {
         std::cout << "error during alloc memory for digest on GPU error code: " << cudaGetErrorName(errorCode)
                   << std::endl;
         return;
@@ -40,12 +42,12 @@ void MD5cudaDigestGenerator::generate() {
         return;
     };
 
-    char *words_tmp = new char [length_to_gen*n_to_gen];
+    char *words_tmp = new char[length_to_gen * n_to_gen];
     for (unsigned int i = 0; i < n_to_gen; i++) {
-        memcpy(words_tmp+i*length_to_gen,words[i],sizeof(unsigned char) * length_to_gen);
+        memcpy(words_tmp + i * length_to_gen, words[i], sizeof(unsigned char) * length_to_gen);
     }
 
-    cudaMemcpy(wordsGPU, words_tmp, sizeof(unsigned char) * length_to_gen*n_to_gen, cudaMemcpyHostToDevice);
+    cudaMemcpy(wordsGPU, words_tmp, sizeof(unsigned char) * length_to_gen * n_to_gen, cudaMemcpyHostToDevice);
     delete[] words_tmp;
 
     auto stopLoad = std::chrono::high_resolution_clock::now();
@@ -53,8 +55,10 @@ void MD5cudaDigestGenerator::generate() {
     std::cout << "gpu data load in: " << durationLoad.count() << " milliseconds" << std::endl;
 
     auto startKernel = std::chrono::high_resolution_clock::now();
-
-    calculateHashSum <<< 1, 1024 >>> (digestGPU, wordsGPU, workingBufferLength, length_to_gen, n_to_gen);
+    unsigned int blockSize = 64;
+    unsigned int gridSize = (unsigned int) ceil((float) n_to_gen / blockSize);
+    std::cout << "number of blocks: " << gridSize << "\t number of threads per block: " << blockSize << std::endl;
+    calculateHashSum <<< gridSize, blockSize >>> (digestGPU, wordsGPU, workingBufferLength, length_to_gen, n_to_gen);
 
     cudaDeviceSynchronize();
 
@@ -65,12 +69,12 @@ void MD5cudaDigestGenerator::generate() {
     auto startUnload = std::chrono::high_resolution_clock::now();
 
     digest = new unsigned char *[n_to_gen];
-    unsigned char *digest_tmp = new unsigned char[n_to_gen*getDigestLength()];
+    unsigned char *digest_tmp = new unsigned char[n_to_gen * getDigestLength()];
     cudaMemcpy(digest_tmp, digestGPU, sizeof(unsigned char) * getDigestLength() * n_to_gen, cudaMemcpyDeviceToHost);
 
     for (unsigned int i = 0; i < n_to_gen; i++) {
-        digest[i] = new unsigned char[ getDigestLength()];
-        memcpy(digest[i],digest_tmp+i*getDigestLength(),getDigestLength());
+        digest[i] = new unsigned char[getDigestLength()];
+        memcpy(digest[i], digest_tmp + i * getDigestLength(), getDigestLength());
     }
 
     delete[] digest_tmp;

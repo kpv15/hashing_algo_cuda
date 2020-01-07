@@ -1,13 +1,14 @@
 #include <cstring>
+#include <cstdint>
 #include "include/MD5_cuda.cuh"
 
 #define DIGEST_LENGTH 16
 
 struct block {
-    unsigned int a;
-    unsigned int b;
-    unsigned int c;
-    unsigned int d;
+    uint32_t a;
+    uint32_t b;
+    uint32_t c;
+    uint32_t d;
 };
 
 __constant__ const block DEFAULT_DIGEST_BUFFER = {
@@ -24,7 +25,7 @@ __constant__ const unsigned char S[64] = {
         6, 10, 15, 21, 6, 10, 15, 21, 6, 10, 15, 21, 6, 10, 15, 21
 };
 
-__constant__ const unsigned int T[64] = {
+__constant__ const uint32_t T[64] = {
         0xd76aa478, 0xe8c7b756, 0x242070db, 0xc1bdceee,
         0xf57c0faf, 0x4787c62a, 0xa8304613, 0xfd469501,
         0x698098d8, 0x8b44f7af, 0xffff5bb1, 0x895cd7be,
@@ -43,7 +44,7 @@ __constant__ const unsigned int T[64] = {
         0xf7537e82, 0xbd3af235, 0x2ad7d2bb, 0xeb86d391
 };
 
-__constant__ const unsigned int K[64] = {
+__constant__ const uint32_t K[64] = {
         0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
         1, 6, 11, 0, 5, 10, 15, 4, 9, 14, 3, 8, 13, 2, 7, 12,
         5, 8, 11, 14, 1, 4, 7, 10, 13, 0, 3, 6, 9, 12, 15, 2,
@@ -85,21 +86,21 @@ __device__ unsigned int leftRotate(unsigned int x, unsigned int n) {
 __global__ void calculateHashSum(unsigned char *digest, char *word, unsigned long int workingBufferLength,
                                  unsigned long int wordLength, unsigned long int n) {
 
-    unsigned long int wordIndex = threadIdx.x;
+    unsigned long int threadId = blockIdx.x * blockDim.x + threadIdx.x;
     unsigned char workingBuffer[2000];
     createWorkingBuffer(workingBuffer,workingBufferLength, wordLength);
     unsigned int numberOfChunks = workingBufferLength / 64;
 
-    while (wordIndex < n) {
+    if (threadId < n) {
         block mdBuffer = DEFAULT_DIGEST_BUFFER;
 
         for (unsigned long i = 0; i < numberOfChunks; i++) {
-            updateWorkingBuffer(workingBuffer, word + wordIndex * wordLength, wordLength);
+            updateWorkingBuffer(workingBuffer, word + threadId * wordLength, wordLength);
             unsigned int *X = reinterpret_cast<unsigned int *>(workingBuffer + i * 16 * sizeof(unsigned int));
 
             block stepBuffer = mdBuffer;
 
-            unsigned int *a = &stepBuffer.a, *b = &stepBuffer.b, *c = &stepBuffer.c, *d = &stepBuffer.d, *tmp;
+            uint32_t *a = &stepBuffer.a, *b = &stepBuffer.b, *c = &stepBuffer.c, *d = &stepBuffer.d, *tmp;
 
             for (unsigned int step = 0; step < 64; step++) {
                 if (step < 16) {
@@ -124,7 +125,6 @@ __global__ void calculateHashSum(unsigned char *digest, char *word, unsigned lon
             mdBuffer.c += stepBuffer.c;
             mdBuffer.d += stepBuffer.d;
         }
-        memcpy((digest + wordIndex * DIGEST_LENGTH), &mdBuffer, DIGEST_LENGTH);
-        wordIndex += 1024;
+        memcpy((digest + threadId * DIGEST_LENGTH), &mdBuffer, DIGEST_LENGTH);
     }
 }
