@@ -6,7 +6,7 @@
 #include "cuda_clion_hack.hpp"
 #include "utils/include/WordsGenerator.h"
 #include "utils/include/HexParser.h"
-#include "hashing_algorithms/include/HashingAlgorithms.h"
+#include "hashing_algorithms/generators/include/HashingAlgorithms.h"
 #include "utils/include/ResultComparator.h"
 
 const std::string DEFAULT_WORD_LIST_OUTPUT_FILE_NAME = "words";
@@ -147,7 +147,7 @@ void generateDigests(IGenerator *generator) {
 
     if (digits != nullptr) {
         for (unsigned long int i = 0; i < n; i++) {
-            char *word = words[i];
+//            char *word = words[i];
 //            std::cout <<  std::string(word, word + length) << "\t" << hexParser(digits[i]) << std::endl;
             outputDigest << hexParser(digits[i]) << std::endl;
 //            outputDigestHex.write((char *) (digits[i]), digestLength);

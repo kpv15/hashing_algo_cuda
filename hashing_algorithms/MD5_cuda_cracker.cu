@@ -1,7 +1,6 @@
 #include <cstring>
 #include <cstdint>
-#include "include/MD5_cuda.cuh"
-
+#include "../cuda_clion_hack.hpp"
 #define DIGEST_LENGTH 16
 
 struct block {
@@ -38,9 +37,10 @@ __device__ unsigned int leftRotate(unsigned int x, unsigned int n) {
     return (x << n) | (x >> (32 - n));
 }
 
-__global__ void calculateHashSum(unsigned char *digest, char *word, unsigned long int workingBufferLength,
+__global__ void calculateHashSum(unsigned char *digest, unsigned long int workingBufferLength,
                                  unsigned long int wordLength, unsigned long int n) {
 
+    char word[10];
     unsigned long int threadId = blockIdx.x * blockDim.x + threadIdx.x;
 
 //    __shared__ unsigned char buff_words[200*128];

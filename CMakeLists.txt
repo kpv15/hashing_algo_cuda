@@ -31,20 +31,14 @@ add_executable(main
         hashing_algorithms/generators/include/MD5_cuda.cuh
         ${UTILS_SOURCE})
 
-target_compile_options(main PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:
-        --maxrregcount=16
-        >)
-
 target_link_libraries(main OpenSSL::SSL)
 
-add_executable(tests
-        tests/tests.cu
+add_executable(cracker
+        cracker.cpp
         dummy.cpp
-        hashing_algorithms/generators/include/IHashingAlgorithm.h
-        hashing_algorithms/generators/MD5_cpu.cpp
-        hashing_algorithms/generators/include/MD5_cpu.h
-        hashing_algorithms/generators/MD5_cuda.cu)
-target_link_libraries(tests OpenSSL::SSL)
+        hashing_algorithms/MD5_cuda_cracker.cu
+     )
+target_link_libraries(cracker OpenSSL::SSL)
 
 #clion cuda hack
 include_directories(/opt/cuda/include)
