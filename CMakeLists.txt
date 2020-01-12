@@ -31,6 +31,10 @@ add_executable(main
         hashing_algorithms/include/MD5_cuda.cuh
         ${UTILS_SOURCE})
 
+target_compile_options(main PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:
+        --maxrregcount=16
+        >)
+
 target_link_libraries(main OpenSSL::SSL)
 
 add_executable(tests

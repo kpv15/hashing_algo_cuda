@@ -134,7 +134,7 @@ void generateDigests(IGenerator *generator) {
 
 
     std::string algorithmName = generator->getAlgorithmName();
-    std::ofstream outputDigestHex(algorithmName + ".hex");
+//    std::ofstream outputDigestHex(algorithmName + ".hex");
     std::ofstream outputDigest(algorithmName + ".txt");
 
     std::cout << "open output file: " << algorithmName << std::endl;
@@ -162,7 +162,7 @@ void generateDigests(IGenerator *generator) {
         delete[] digits;
 
         outputDigest.close();
-        outputDigestHex.close();
+//        outputDigestHex.close();
 
         std::cout << "cleaning memory complete" << std::endl;
     }

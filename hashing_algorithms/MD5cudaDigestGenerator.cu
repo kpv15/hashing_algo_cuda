@@ -54,17 +54,19 @@ void MD5cudaDigestGenerator::generate() {
     auto durationLoad = std::chrono::duration_cast<std::chrono::milliseconds>(stopLoad - startLoad);
     std::cout << "gpu data load in: " << durationLoad.count() << " milliseconds" << std::endl;
 
-    auto startKernel = std::chrono::high_resolution_clock::now();
-    unsigned int blockSize = 64;
+    unsigned int blockSize = 128;
     unsigned int gridSize = (unsigned int) ceil((float) n_to_gen / blockSize);
     std::cout << "number of blocks: " << gridSize << "\t number of threads per block: " << blockSize << std::endl;
+
+    auto startKernel = std::chrono::high_resolution_clock::now();
+
     calculateHashSum <<< gridSize, blockSize >>> (digestGPU, wordsGPU, workingBufferLength, length_to_gen, n_to_gen);
 
     cudaDeviceSynchronize();
 
     auto stopKernel = std::chrono::high_resolution_clock::now();
     auto durationKernel = std::chrono::duration_cast<std::chrono::milliseconds>(stopKernel - startKernel);
-    std::cout << "kernel end work in in: " << durationKernel.count() << " milliseconds" << std::endl;
+    std::cout << "kernel end work in in: " << durationKernel.count() << " milliseconds <-----------------" << std::endl;
 
     auto startUnload = std::chrono::high_resolution_clock::now();
 
