@@ -43,11 +43,19 @@ __global__ void calculateHashSum(unsigned char *digest, char *word, unsigned lon
 
     unsigned long int threadId = blockIdx.x * blockDim.x + threadIdx.x;
 
+//    __shared__ unsigned char buff_words[200*128];
+//
+//    for(int i = threadIdx.x ; i < blockDim.x * wordLength ; i+=blockDim.x)
+//        buff_words[i] = word[blockDim.x*blockIdx.x*wordLength+i];
+//
+//    __syncthreads();
+
     if (threadId < n) {
 
         //init working buffer copy data from global to local memory
         unsigned char workingBuffer[1000];
         //word to buffer
+        //        memcpy(workingBuffer, buff_words + threadIdx.x * wordLength, wordLength);
         memcpy(workingBuffer, word + threadId * wordLength, wordLength);
         //padding
         workingBuffer[wordLength] = 0b10000000;

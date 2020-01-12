@@ -10,25 +10,25 @@ set(UTILS_SOURCE
         utils/include/HexParser.h
         utils/include/ResultComparator.h
         utils/WordsGenerator.cpp
-        utils/ResultComparator.cpp hashing_algorithms/MD5cpuDigestGenerator.cpp hashing_algorithms/include/MD5cpuDigestGenerator.h)
+        utils/ResultComparator.cpp hashing_algorithms/generators/MD5cpuDigestGenerator.cpp hashing_algorithms/generators/include/MD5cpuDigestGenerator.h)
 
 add_executable(main
         main.cpp
         dummy.cpp
-        hashing_algorithms/include/IHashingAlgorithm.h
-        hashing_algorithms/MD5_cpu.cpp
-        hashing_algorithms/include/MD5_cpu.h
-        hashing_algorithms/MD5_ssl.cpp
-        hashing_algorithms/include/MD5_ssl.h
-        hashing_algorithms/MD5sslDigestGenerator.cpp
-        hashing_algorithms/include/MD5sslDigestGenerator.h
-        hashing_algorithms/include/HashingAlgorithms.h
-        hashing_algorithms/include/IGenerator.h
-        hashing_algorithms/MD5cudaDigestGenerator.cu
-        hashing_algorithms/include/MD5cudaDigestGenerator.cuh
-        hashing_algorithms/MD5_cuda.cu
-        hashing_algorithms/IGenerator.cpp
-        hashing_algorithms/include/MD5_cuda.cuh
+        hashing_algorithms/generators/include/IHashingAlgorithm.h
+        hashing_algorithms/generators/MD5_cpu.cpp
+        hashing_algorithms/generators/include/MD5_cpu.h
+        hashing_algorithms/generators/MD5_ssl.cpp
+        hashing_algorithms/generators/include/MD5_ssl.h
+        hashing_algorithms/generators/MD5sslDigestGenerator.cpp
+        hashing_algorithms/generators/include/MD5sslDigestGenerator.h
+        hashing_algorithms/generators/include/HashingAlgorithms.h
+        hashing_algorithms/generators/include/IGenerator.h
+        hashing_algorithms/generators/MD5cudaDigestGenerator.cu
+        hashing_algorithms/generators/include/MD5cudaDigestGenerator.cuh
+        hashing_algorithms/generators/MD5_cuda.cu
+        hashing_algorithms/generators/IGenerator.cpp
+        hashing_algorithms/generators/include/MD5_cuda.cuh
         ${UTILS_SOURCE})
 
 target_compile_options(main PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:
@@ -40,10 +40,10 @@ target_link_libraries(main OpenSSL::SSL)
 add_executable(tests
         tests/tests.cu
         dummy.cpp
-        hashing_algorithms/include/IHashingAlgorithm.h
-        hashing_algorithms/MD5_cpu.cpp
-        hashing_algorithms/include/MD5_cpu.h
-        hashing_algorithms/MD5_cuda.cu)
+        hashing_algorithms/generators/include/IHashingAlgorithm.h
+        hashing_algorithms/generators/MD5_cpu.cpp
+        hashing_algorithms/generators/include/MD5_cpu.h
+        hashing_algorithms/generators/MD5_cuda.cu)
 target_link_libraries(tests OpenSSL::SSL)
 
 #clion cuda hack
