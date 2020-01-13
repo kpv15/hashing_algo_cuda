@@ -14,29 +14,43 @@ unsigned int calculateWorkingBufferLength(unsigned int wordLength) {
     return wordLength + toAdd + 8;
 }
 
-int crack(int min_length, int max_length);
+int crack(int min_length, int max_length, unsigned char *digest);
+
+inline unsigned char hexToInt(unsigned char a, unsigned char b) {
+    a = a - '0' < 10 ? a - '0' : a - 'a' + 10;
+    b = b - '0' < 10 ? b - '0' : b - 'a' + 10;
+    return (a * 16) + b;
+}
 
 int main(int argc, char **argv) {
 
+    char digest_hex[DIGEST_LENGTH * 2 + 1];
+    unsigned char digest[DIGEST_LENGTH];
     int min = 0;
     int max = 0;
-    if (argc >= 3) {
+    if (argc >= 4) {
         min = atoi(argv[1]);
         max = atoi(argv[2]);
+        strcpy(reinterpret_cast<char *>(&digest_hex), argv[3]);
     }
-    crack(min, max);
+
+    for (int i = 0; i < DIGEST_LENGTH; i++) {
+        digest[i] = hexToInt(digest_hex[2 * i], digest_hex[2 * i + 1]);
+    }
+
+    crack(min, max, digest);
+
 }
 
-int crack(int min_length, int max_length) {
+int crack(int min_length, int max_length, unsigned char *digest) {
 
     min_length = min_length >= 2 ? min_length : 2;
     cudaError_t errorCode;
     const char NOT_FOUND[] = "-";
 
-    char *word =  new char[max_length + 1];
+    char *word = new char[max_length + 1];
     char *word_gpu;
 
-    unsigned char *digest = new unsigned char[DIGEST_LENGTH];
     unsigned char *digest_gpu;
     if ((errorCode = cudaMalloc((void **) &digest_gpu, DIGEST_LENGTH * sizeof(unsigned char))) != cudaSuccess) {
         std::cout << "error during alloc memory for digest on GPU error code: " << cudaGetErrorName(errorCode)
@@ -44,10 +58,6 @@ int crack(int min_length, int max_length) {
         return 1;
     };
 
-    reinterpret_cast<uint32_t *>(digest)[0] = 0xd5e1682c;
-    reinterpret_cast<uint32_t *>(digest)[1] = 0xaee40908;
-    reinterpret_cast<uint32_t *>(digest)[2] = 0xfecf7b35;
-    reinterpret_cast<uint32_t *>(digest)[3] = 0x2a9dc91f;
     cudaMemcpy(digest_gpu, digest, sizeof(unsigned char) * DIGEST_LENGTH, cudaMemcpyHostToDevice);
 
     for (int length = min_length; length <= max_length; length++) {
