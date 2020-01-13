@@ -14,18 +14,29 @@ unsigned int calculateWorkingBufferLength(unsigned int wordLength) {
     return wordLength + toAdd + 8;
 }
 
+int crack(int min_length, int max_length);
+
 int main(int argc, char **argv) {
 
-    int length = 4;
-    int workingBufferLength = calculateWorkingBufferLength(length);
+    int min = 0;
+    int max = 0;
+    if (argc >= 3) {
+        min = atoi(argv[1]);
+        max = atoi(argv[2]);
+    }
+    crack(min, max);
+}
+
+int crack(int min_length, int max_length) {
+
+    min_length = min_length >= 2 ? min_length : 2;
     cudaError_t errorCode;
+    const char NOT_FOUND[] = "-";
+
+    char *word =  new char[max_length + 1];
+    char *word_gpu;
 
     unsigned char *digest = new unsigned char[DIGEST_LENGTH];
-    reinterpret_cast<uint32_t*>(digest)[0] = 0x6fa64397;
-    reinterpret_cast<uint32_t*>(digest)[1] = 0x49c24c91;
-    reinterpret_cast<uint32_t*>(digest)[2] = 0x4416caef;
-    reinterpret_cast<uint32_t*>(digest)[3] = 0x5c9ca185;
-
     unsigned char *digest_gpu;
     if ((errorCode = cudaMalloc((void **) &digest_gpu, DIGEST_LENGTH * sizeof(unsigned char))) != cudaSuccess) {
         std::cout << "error during alloc memory for digest on GPU error code: " << cudaGetErrorName(errorCode)
@@ -33,29 +44,37 @@ int main(int argc, char **argv) {
         return 1;
     };
 
-
-    char *word = new char[length + 1];
-    strcpy(word,"----");
-    char *word_gpu;
-    if ((errorCode = cudaMalloc((void **) &word_gpu, length * sizeof(char))) != cudaSuccess) {
-        std::cout << "error during alloc memory for digest on GPU error code: " << cudaGetErrorName(errorCode)
-                  << std::endl;
-        return 1;
-    };
+    reinterpret_cast<uint32_t *>(digest)[0] = 0xd5e1682c;
+    reinterpret_cast<uint32_t *>(digest)[1] = 0xaee40908;
+    reinterpret_cast<uint32_t *>(digest)[2] = 0xfecf7b35;
+    reinterpret_cast<uint32_t *>(digest)[3] = 0x2a9dc91f;
     cudaMemcpy(digest_gpu, digest, sizeof(unsigned char) * DIGEST_LENGTH, cudaMemcpyHostToDevice);
-    const char not_fount[] = "----";
-    cudaMemcpy(&word_gpu, not_fount, sizeof(unsigned char) * DIGEST_LENGTH, cudaMemcpyHostToDevice);
 
-    calculateHashSum <<< 256, 256 >>> (digest_gpu, word_gpu, workingBufferLength, length);
-    cudaDeviceSynchronize();
+    for (int length = min_length; length <= max_length; length++) {
+        if ((errorCode = cudaMalloc((void **) &word_gpu, length * sizeof(char))) != cudaSuccess) {
+            std::cout << "error during alloc memory for digest on GPU error code: " << cudaGetErrorName(errorCode)
+                      << std::endl;
+            return 1;
+        };
+        cudaMemcpy(word_gpu, NOT_FOUND, sizeof(char) * (strlen(NOT_FOUND) + 1), cudaMemcpyHostToDevice);
 
-//        calculateHashSum (digest, word, workingBufferLength, length);
+        int workingBufferLength = calculateWorkingBufferLength(length);
 
-    cudaMemcpy(word, word_gpu, sizeof(char) * length, cudaMemcpyDeviceToHost);
-    word[length] = '\0';
-    std::cout << word << std::endl;
+        std::cout << "checking word with length: " << length << std::endl;
+
+        calculateHashSum << < 256, 256 >> > (digest_gpu, word_gpu, workingBufferLength, length);
+
+        cudaDeviceSynchronize();
+        cudaMemcpy(word, word_gpu, sizeof(char) * length, cudaMemcpyDeviceToHost);
+        word[length] = '\0';
+        std::cout << word << std::endl;
+
+        cudaFree(word_gpu);
+    }
 
     cudaFree(digest_gpu);
-    cudaFree(word_gpu);
     delete[] digest;
+    delete[]word;
+
+    return 0;
 }

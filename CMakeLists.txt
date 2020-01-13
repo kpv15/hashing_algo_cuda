@@ -45,6 +45,10 @@ add_executable(cracker
 
      )
 
+target_compile_options(cracker PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:
+        --maxrregcount=32
+        >)
+
 #clion cuda hack
 include_directories(/opt/cuda/include)
 include_directories(/opt/cuda/samples/common/inc)
