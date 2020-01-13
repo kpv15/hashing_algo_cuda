@@ -40,6 +40,9 @@ add_executable(cracker
         dummy.cpp
         hashing_algorithms/MD5_cuda_cracker.cu
         hashing_algorithms/include/MD5_cuda_cracker.cuh
+#         hashing_algorithms/MD5_cpu_cracker.cpp
+#         hashing_algorithms/include/MD5_cpu_cracker.h
+
      )
 
 #clion cuda hack

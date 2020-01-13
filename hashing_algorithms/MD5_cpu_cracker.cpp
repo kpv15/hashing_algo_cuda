@@ -1,6 +1,6 @@
 #include <cstring>
 #include <cstdint>
-#include "include/MD5_cuda_cracker.cuh"
+#include "include/MD5_cpu_cracker.h"
 #include "../cuda_clion_hack.hpp"
 
 struct block {
@@ -17,30 +17,30 @@ __constant__  const block DEFAULT_DIGEST_BUFFER = {
         0x10325476
 };
 
-__device__ unsigned int funF(const unsigned int x, const unsigned int y, const unsigned int z) {
+unsigned int funF(const unsigned int x, const unsigned int y, const unsigned int z) {
     return (x & y) | ((~x) & z);
 }
 
-__device__ unsigned int funG(const unsigned int x, const unsigned int y, const unsigned int z) {
+unsigned int funG(const unsigned int x, const unsigned int y, const unsigned int z) {
     return (x & z) | (y & (~z));
 }
 
-__device__ unsigned int funH(const unsigned int x, const unsigned int y, const unsigned int z) {
+unsigned int funH(const unsigned int x, const unsigned int y, const unsigned int z) {
     return x ^ y ^ z;
 }
 
-__device__ unsigned int funI(const unsigned int x, const unsigned int y, const unsigned int z) {
+unsigned int funI(const unsigned int x, const unsigned int y, const unsigned int z) {
     return y ^ (x | (~z));
 }
 
-__device__ unsigned int leftRotate(unsigned int x, unsigned int n) {
+unsigned int leftRotate(unsigned int x, unsigned int n) {
     return (x << n) | (x >> (32 - n));
 }
 
 #define MAX_WORD_SIZE 10
 #define MAX_WORKING_BUFFER_SIZE MAX_WORD_SIZE + 128
 
-__global__ void
+void
 calculateHashSum(unsigned char *digest, char *words, int workingBufferLength, int lenght) {
 
     unsigned char workingBuffer[MAX_WORKING_BUFFER_SIZE];
@@ -49,8 +49,8 @@ calculateHashSum(unsigned char *digest, char *words, int workingBufferLength, in
     memset(workingBuffer + lenght + 1, 0, workingBufferLength - lenght - 1 - 8);
     reinterpret_cast<unsigned long *>(workingBuffer)[workingBufferLength / 8 - 1] = 8 * lenght;
 
-    workingBuffer[0] = threadIdx.x;
-    workingBuffer[1] = blockIdx.x;
+    workingBuffer[0] = 'd';
+    workingBuffer[1] = 'u';
 
     int combinations = 1;
     for (int i = 0; i < lenght - 2; i++)

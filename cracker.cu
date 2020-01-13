@@ -6,6 +6,7 @@
 #include <cstring>
 #include "cuda_clion_hack.hpp"
 #include "hashing_algorithms/include/MD5_cuda_cracker.cuh"
+//#include "hashing_algorithms/include/MD5_cpu_cracker.h"
 
 unsigned int calculateWorkingBufferLength(unsigned int wordLength) {
     unsigned int toAdd = 64 - (wordLength + 8) % 64;
@@ -36,17 +37,21 @@ int main(int argc, char **argv) {
     char *word = new char[length + 1];
     strcpy(word,"----");
     char *word_gpu;
-    if ((errorCode = cudaMalloc((void **) &word_gpu, length)) != cudaSuccess) {
+    if ((errorCode = cudaMalloc((void **) &word_gpu, length * sizeof(char))) != cudaSuccess) {
         std::cout << "error during alloc memory for digest on GPU error code: " << cudaGetErrorName(errorCode)
                   << std::endl;
         return 1;
     };
-    cudaMemcpy(digest, &digest_gpu, sizeof(unsigned char) * DIGEST_LENGTH, cudaMemcpyHostToDevice);
+    cudaMemcpy(digest_gpu, digest, sizeof(unsigned char) * DIGEST_LENGTH, cudaMemcpyHostToDevice);
+    const char not_fount[] = "----";
+    cudaMemcpy(&word_gpu, not_fount, sizeof(unsigned char) * DIGEST_LENGTH, cudaMemcpyHostToDevice);
 
     calculateHashSum <<< 256, 256 >>> (digest_gpu, word_gpu, workingBufferLength, length);
     cudaDeviceSynchronize();
 
-    cudaMemcpy(word, word_gpu, sizeof(char) * length, cudaMemcpyHostToDevice);
+//        calculateHashSum (digest, word, workingBufferLength, length);
+
+    cudaMemcpy(word, word_gpu, sizeof(char) * length, cudaMemcpyDeviceToHost);
     word[length] = '\0';
     std::cout << word << std::endl;
 
