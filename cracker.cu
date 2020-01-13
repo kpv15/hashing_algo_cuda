@@ -83,7 +83,6 @@ int crack(int min_length, int max_length, unsigned char *digest) {
     }
 
     cudaFree(digest_gpu);
-    delete[] digest;
     delete[]word;
 
     return 0;
