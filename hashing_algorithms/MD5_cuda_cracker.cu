@@ -150,7 +150,7 @@ calculateHashSum(unsigned char *digest, char *words, int workingBufferLength, in
             mdBuffer.b == reinterpret_cast<uint32_t *>(digest)[1] &&
             mdBuffer.c == reinterpret_cast<uint32_t *>(digest)[2] &&
             mdBuffer.d == reinterpret_cast<uint32_t *>(digest)[3]) {
-            memcpy(words, &workingBuffer, lenght * sizeof(uint32_t));
+            memcpy(words, &workingBuffer, lenght * sizeof(char));
 //            words[0] = '1';
 //            words[1] = '2';
 //            words[2] = '3';
