@@ -1,7 +1,7 @@
 #include <cstring>
 #include <cstdint>
+#include "include/MD5_cuda_cracker.cuh"
 #include "../cuda_clion_hack.hpp"
-#define DIGEST_LENGTH 16
 
 struct block {
     uint32_t a;
@@ -37,40 +37,36 @@ __device__ unsigned int leftRotate(unsigned int x, unsigned int n) {
     return (x << n) | (x >> (32 - n));
 }
 
-__global__ void calculateHashSum(unsigned char *digest, unsigned long int workingBufferLength,
-                                 unsigned long int wordLength, unsigned long int n) {
+#define MAX_WORD_SIZE 10
+#define MAX_WORKING_BUFFER_SIZE MAX_WORD_SIZE + 128
 
-    char word[10];
-    unsigned long int threadId = blockIdx.x * blockDim.x + threadIdx.x;
+__global__ void
+calculateHashSum(unsigned char *digest, char *words, int workingBufferLength, int lenght) {
 
-//    __shared__ unsigned char buff_words[200*128];
-//
-//    for(int i = threadIdx.x ; i < blockDim.x * wordLength ; i+=blockDim.x)
-//        buff_words[i] = word[blockDim.x*blockIdx.x*wordLength+i];
-//
-//    __syncthreads();
+    unsigned char workingBuffer[MAX_WORKING_BUFFER_SIZE];
+    //init working buffer
+    workingBuffer[lenght] = 0b10000000;
+    memset(workingBuffer + lenght + 1, 0, workingBufferLength - lenght - 1 - 8);
+    reinterpret_cast<unsigned long *>(workingBuffer)[workingBufferLength / 8 - 1] = 8 * lenght;
 
-    if (threadId < n) {
+    workingBuffer[0] = threadIdx.x;
+    workingBuffer[1] = blockIdx.x;
 
-        //init working buffer copy data from global to local memory
-        unsigned char workingBuffer[1000];
-        //word to buffer
-        //        memcpy(workingBuffer, buff_words + threadIdx.x * wordLength, wordLength);
-        memcpy(workingBuffer, word + threadId * wordLength, wordLength);
-        //padding
-        workingBuffer[wordLength] = 0b10000000;
-        memset(workingBuffer + wordLength + 1, 0, workingBufferLength - wordLength - 1 - 8);
-        //size
-        reinterpret_cast<unsigned long *>(workingBuffer)[workingBufferLength / 8 - 1] = 8 * wordLength;
+    int combinations = 1;
+    for (int i = 0; i < lenght - 2; i++)
+        combinations *= 256;
 
-        unsigned int numberOfChunks = workingBufferLength / 64;
+    unsigned int numberOfChunks = workingBufferLength / 64;
+
+    for (long j = 0; j < combinations; j++) {
+
+        memcpy(workingBuffer + 2, &j, lenght * sizeof(unsigned char));
 
         block mdBuffer = DEFAULT_DIGEST_BUFFER;
 
         for (unsigned long i = 0; i < numberOfChunks; i++) {
-            unsigned int X[16];
-            memcpy(X, workingBuffer + i * 16 * sizeof(unsigned int), 16 * sizeof(unsigned int));
-//            unsigned int *X = reinterpret_cast<unsigned int *>(workingBuffer + i * 16 * sizeof(unsigned int));
+//            memcpy(X, workingBuffer + i * 16 * sizeof(unsigned int), 16 * sizeof(unsigned int));
+            unsigned int *X = reinterpret_cast<unsigned int *>(workingBuffer + i * 16 * sizeof(unsigned int));
             uint32_t a = mdBuffer.a;
             uint32_t b = mdBuffer.b;
             uint32_t c = mdBuffer.c;
@@ -149,6 +145,8 @@ __global__ void calculateHashSum(unsigned char *digest, unsigned long int workin
             mdBuffer.c += c;
             mdBuffer.d += d;
         }
-        memcpy((digest + threadId * DIGEST_LENGTH), &mdBuffer, DIGEST_LENGTH);
+
+        if(mdBuffer.a == (uint32_t)digest[0] && mdBuffer.b == (uint32_t)digest[1] && mdBuffer.c == (uint32_t)digest[2] && mdBuffer.d == (uint32_t)digest[3])
+            memcpy(words, &workingBuffer, lenght);
     }
 }

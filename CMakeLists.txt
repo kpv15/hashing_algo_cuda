@@ -10,7 +10,9 @@ set(UTILS_SOURCE
         utils/include/HexParser.h
         utils/include/ResultComparator.h
         utils/WordsGenerator.cpp
-        utils/ResultComparator.cpp hashing_algorithms/generators/MD5cpuDigestGenerator.cpp hashing_algorithms/generators/include/MD5cpuDigestGenerator.h)
+        utils/ResultComparator.cpp
+        hashing_algorithms/generators/MD5cpuDigestGenerator.cpp
+        hashing_algorithms/generators/include/MD5cpuDigestGenerator.h)
 
 add_executable(main
         main.cpp
@@ -34,11 +36,11 @@ add_executable(main
 target_link_libraries(main OpenSSL::SSL)
 
 add_executable(cracker
-        cracker.cpp
+        cracker.cu
         dummy.cpp
         hashing_algorithms/MD5_cuda_cracker.cu
+        hashing_algorithms/include/MD5_cuda_cracker.cuh
      )
-target_link_libraries(cracker OpenSSL::SSL)
 
 #clion cuda hack
 include_directories(/opt/cuda/include)
