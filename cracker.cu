@@ -4,6 +4,7 @@
 
 #include <iostream>
 #include <cstring>
+#include <chrono>
 #include "cuda_clion_hack.hpp"
 #include "hashing_algorithms/include/MD5_cuda_cracker.cuh"
 //#include "hashing_algorithms/include/MD5_cpu_cracker.h"
@@ -72,12 +73,23 @@ int crack(int min_length, int max_length, unsigned char *digest) {
 
         std::cout << "checking word with length: " << length << std::endl;
 
+        auto startKernel = std::chrono::high_resolution_clock::now();
+
         calculateHashSum << < 256, 256 >> > (digest_gpu, word_gpu, workingBufferLength, length);
 
-        cudaDeviceSynchronize();
+        auto stopKernel = std::chrono::high_resolution_clock::now();
+
+        if ((errorCode = cudaDeviceSynchronize()) != cudaSuccess) {
+            std::cout << "error during Device Synchronize: " << cudaGetErrorName(errorCode)
+                      << std::endl;
+            return 1;
+        }
         cudaMemcpy(word, word_gpu, sizeof(char) * length, cudaMemcpyDeviceToHost);
         word[length] = '\0';
-        std::cout << word << std::endl;
+
+        auto durationKernel = std::chrono::duration_cast<std::chrono::milliseconds>(stopKernel - startKernel);
+
+        std::cout << word << "\tin: " << durationKernel.count() << std::endl;
 
         cudaFree(word_gpu);
     }

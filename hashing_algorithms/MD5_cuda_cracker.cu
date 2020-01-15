@@ -17,23 +17,23 @@ __constant__  const block DEFAULT_DIGEST_BUFFER = {
         0x10325476
 };
 
-__device__ unsigned int funF(const unsigned int x, const unsigned int y, const unsigned int z) {
+__device__ unsigned int funF(const uint32_t x, const uint32_t y, const uint32_t z) {
     return (x & y) | ((~x) & z);
 }
 
-__device__ unsigned int funG(const unsigned int x, const unsigned int y, const unsigned int z) {
+__device__ unsigned int funG(const uint32_t x, const uint32_t y, const uint32_t z) {
     return (x & z) | (y & (~z));
 }
 
-__device__ unsigned int funH(const unsigned int x, const unsigned int y, const unsigned int z) {
+__device__ unsigned int funH(const uint32_t x, const uint32_t y, const uint32_t z) {
     return x ^ y ^ z;
 }
 
-__device__ unsigned int funI(const unsigned int x, const unsigned int y, const unsigned int z) {
+__device__ unsigned int funI(const uint32_t x, const uint32_t y, const uint32_t z) {
     return y ^ (x | (~z));
 }
 
-__device__ unsigned int leftRotate(unsigned int x, unsigned int n) {
+__device__ unsigned int leftRotate(unsigned int x, unsigned char n) {
     return (x << n) | (x >> (32 - n));
 }
 
@@ -64,7 +64,7 @@ calculateHashSum(unsigned char *digest, char *words, int workingBufferLength, in
 
         block mdBuffer = DEFAULT_DIGEST_BUFFER;
 
-        for (unsigned long i = 0; i < numberOfChunks; i++) {
+        for (unsigned int i = 0; i < numberOfChunks; i++) {
 //            memcpy(X, workingBuffer + i * 16 * sizeof(unsigned int), 16 * sizeof(unsigned int));
             unsigned int *X = reinterpret_cast<unsigned int *>(workingBuffer + i * 16 * sizeof(unsigned int));
             uint32_t a = mdBuffer.a;
