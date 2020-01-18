@@ -65,6 +65,11 @@ int main(int argc, char **argv) {
                     generateDigests(md5cpuDigestGenerator);
                     fileList.push_back(md5cpuDigestGenerator->getAlgorithmName() + ".txt");
                     delete md5cpuDigestGenerator;
+                } else if (!strcmp(argv[i + 1], "sha1_ssl")) {
+                    auto *sha1sslDigestGenerator = new SHA1sslDigestGenerator();
+                    generateDigests(sha1sslDigestGenerator);
+                    fileList.push_back(sha1sslDigestGenerator->getAlgorithmName() + ".txt");
+                    delete sha1sslDigestGenerator;
                 }
             } else std::cout << "too few arguments for -g parameters, correct format -g n length" << std::endl;
         }

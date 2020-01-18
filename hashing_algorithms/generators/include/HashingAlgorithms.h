@@ -12,5 +12,8 @@
 #include "IGenerator.h"
 #include "MD5cudaDigestGenerator.cuh"
 #include "MD5cpuDigestGenerator.h"
+#include "SHA1_ssl.h"
+#include "SHA1_cpu.h"
+#include "SHA1sslDigestGenerator.h"
 
 #endif //INYNIERKA_HASHINGALGORITHMS_H

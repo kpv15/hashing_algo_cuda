@@ -12,7 +12,7 @@ set(UTILS_SOURCE
         utils/WordsGenerator.cpp
         utils/ResultComparator.cpp
         hashing_algorithms/generators/MD5cpuDigestGenerator.cpp
-        hashing_algorithms/generators/include/MD5cpuDigestGenerator.h)
+        hashing_algorithms/generators/include/MD5cpuDigestGenerator.h hashing_algorithms/generators/SHA1_cpu.cpp hashing_algorithms/generators/include/SHA1_cpu.h hashing_algorithms/generators/SHA1_ssl.cpp hashing_algorithms/generators/include/SHA1_ssl.h hashing_algorithms/generators/SHA1sslDigestGenerator.cpp hashing_algorithms/generators/include/SHA1sslDigestGenerator.h)
 
 add_executable(main
         main.cpp

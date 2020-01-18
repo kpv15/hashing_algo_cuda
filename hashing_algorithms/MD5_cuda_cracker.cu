@@ -41,7 +41,12 @@ __device__ unsigned int leftRotate(unsigned int x, unsigned int n) {
 #define MAX_WORKING_BUFFER_SIZE MAX_WORD_SIZE + 128
 
 __global__ void
-calculateHashSum(unsigned char *digest, char *words, int workingBufferLength, int lenght) {
+calculateHashSum(unsigned char *digest_g, char *words, int workingBufferLength, int lenght) {
+
+    __shared__ unsigned char digest[DIGEST_LENGTH];
+    for(int i = threadIdx.x; i < DIGEST_LENGTH; i+=blockDim.x)
+        digest[i]=digest_g[i];
+    __syncthreads();
 
     unsigned char workingBuffer[MAX_WORKING_BUFFER_SIZE];
     //init working buffer
