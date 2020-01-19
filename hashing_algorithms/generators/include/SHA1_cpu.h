@@ -12,11 +12,11 @@
 class SHA1_cpu : public IHashingAlgorithm {
 
     struct block {
-        unsigned int a;
-        unsigned int b;
-        unsigned int c;
-        unsigned int d;
-        unsigned int e;
+        uint32_t a;
+        uint32_t b;
+        uint32_t c;
+        uint32_t d;
+        uint32_t e;
     };
 
     const unsigned int DIGEST_LENGTH = 20;
@@ -49,7 +49,7 @@ public:
 
     unsigned int getDigestLength() override;
 
-    void calculateHashSum(uint8_t **digest, const char *word);;
+    void calculateHashSum(uint8_t **digest, const char *word) override;
 
     virtual ~SHA1_cpu();
 

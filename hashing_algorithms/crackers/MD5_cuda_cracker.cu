@@ -1,7 +1,7 @@
 #include <cstring>
 #include <cstdint>
 #include "include/MD5_cuda_cracker.cuh"
-#include "../cuda_clion_hack.hpp"
+#include "../../cuda_clion_hack.hpp"
 
 struct block {
     uint32_t a;
@@ -17,23 +17,23 @@ __constant__  const block DEFAULT_DIGEST_BUFFER = {
         0x10325476
 };
 
-__device__ unsigned int funF(const unsigned int x, const unsigned int y, const unsigned int z) {
+__device__ unsigned int funF(const uint32_t x, const uint32_t y, const uint32_t z) {
     return (x & y) | ((~x) & z);
 }
 
-__device__ unsigned int funG(const unsigned int x, const unsigned int y, const unsigned int z) {
+__device__ unsigned int funG(const uint32_t x, const uint32_t y, const uint32_t z) {
     return (x & z) | (y & (~z));
 }
 
-__device__ unsigned int funH(const unsigned int x, const unsigned int y, const unsigned int z) {
+__device__ unsigned int funH(const uint32_t x, const uint32_t y, const uint32_t z) {
     return x ^ y ^ z;
 }
 
-__device__ unsigned int funI(const unsigned int x, const unsigned int y, const unsigned int z) {
+__device__ unsigned int funI(const uint32_t x, const uint32_t y, const uint32_t z) {
     return y ^ (x | (~z));
 }
 
-__device__ unsigned int leftRotate(unsigned int x, unsigned int n) {
+__device__ unsigned int leftRotate(uint32_t x, unsigned int n) {
     return (x << n) | (x >> (32 - n));
 }
 

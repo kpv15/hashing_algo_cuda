@@ -1,7 +1,7 @@
 #include <cstring>
 #include <cstdint>
 #include "include/MD5_cpu_cracker.h"
-#include "../cuda_clion_hack.hpp"
+#include "../../cuda_clion_hack.hpp"
 
 struct block {
     uint32_t a;

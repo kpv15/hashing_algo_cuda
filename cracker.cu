@@ -6,7 +6,7 @@
 #include <cstring>
 #include <chrono>
 #include "cuda_clion_hack.hpp"
-#include "hashing_algorithms/include/MD5_cuda_cracker.cuh"
+#include "hashing_algorithms/crackers/include/MD5_cuda_cracker.cuh"
 //#include "hashing_algorithms/include/MD5_cpu_cracker.h"
 
 unsigned int calculateWorkingBufferLength(unsigned int wordLength) {

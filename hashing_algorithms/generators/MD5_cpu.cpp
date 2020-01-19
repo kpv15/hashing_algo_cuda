@@ -28,7 +28,7 @@ void MD5_cpu::createWorkingBuffer(const char *word) {
         numberOfChunks = workingBufferLength / 64;
         workingBuffer[defaultWordLength] = 0b10000000;
         std::memset(workingBuffer + defaultWordLength + 1, 0, workingBufferLength - defaultWordLength - 1 - 8);
-        reinterpret_cast<unsigned long *>(workingBuffer)[workingBufferLength / 8 - 1] = 8 * defaultWordLength;
+        reinterpret_cast<uint64_t *>(workingBuffer)[workingBufferLength / 8 - 1] = 8 * defaultWordLength;
     }
     std::memcpy(workingBuffer, word, defaultWordLength);
 }
@@ -47,7 +47,7 @@ const unsigned char MD5_cpu::S[64] = {
         6, 10, 15, 21, 6, 10, 15, 21, 6, 10, 15, 21, 6, 10, 15, 21
 };
 
-const unsigned int MD5_cpu::T[64] = {
+const uint32_t MD5_cpu::T[64] = {
         0xd76aa478, 0xe8c7b756, 0x242070db, 0xc1bdceee,
         0xf57c0faf, 0x4787c62a, 0xa8304613, 0xfd469501,
         0x698098d8, 0x8b44f7af, 0xffff5bb1, 0x895cd7be,
@@ -77,23 +77,23 @@ MD5_cpu::~MD5_cpu() {
     delete[] workingBuffer;
 }
 
-unsigned int MD5_cpu::funF(const unsigned int &x, const unsigned int &y, const unsigned int &z) {
+unsigned int MD5_cpu::funF(const uint32_t &x, const uint32_t &y, const uint32_t &z) {
     return (x & y) | ((~x) & z);
 }
 
-unsigned int MD5_cpu::funG(const unsigned int &x, const unsigned int &y, const unsigned int &z) {
+unsigned int MD5_cpu::funG(const uint32_t &x, const uint32_t &y, const uint32_t &z) {
     return (x & z) | (y & (~z));
 }
 
-unsigned int MD5_cpu::funH(const unsigned int &x, const unsigned int &y, const unsigned int &z) {
+unsigned int MD5_cpu::funH(const uint32_t &x, const uint32_t &y, const uint32_t &z) {
     return x ^ y ^ z;
 }
 
-unsigned int MD5_cpu::funI(const unsigned int &x, const unsigned int &y, const unsigned int &z) {
+unsigned int MD5_cpu::funI(const uint32_t &x, const uint32_t &y, const uint32_t &z) {
     return y ^ (x | (~z));
 }
 
-unsigned int MD5_cpu::leftRotate(unsigned int x, unsigned int n) {
+unsigned int MD5_cpu::leftRotate(uint32_t x, unsigned int n) {
     return (x << n) | (x >> (32 - n));
 }
 
@@ -106,7 +106,7 @@ void MD5_cpu::calculateHashSum(unsigned char **digest, const char *word) {
 
         block stepBuffer = mdBuffer;
 
-        unsigned int *a = &stepBuffer.a, *b = &stepBuffer.b, *c = &stepBuffer.c, *d = &stepBuffer.d;
+        uint32_t *a = &stepBuffer.a, *b = &stepBuffer.b, *c = &stepBuffer.c, *d = &stepBuffer.d;
 
         *a = *b + leftRotate((*a + funF(*b, *c, *d) + X[0] + 0xd76aa478), 7);
         *d = *a + leftRotate((*d + funF(*a, *b, *c) + X[1] + 0xe8c7b756), 12);

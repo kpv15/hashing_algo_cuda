@@ -4,7 +4,7 @@
 #ifndef INYNIERKA_MD5CPUCRACKER_CUH
 #define INYNIERKA_MD5CPUCRACKER_CUH
 
-#include "../../cuda_clion_hack.hpp"
+#include "../../../cuda_clion_hack.hpp"
 
 #define DIGEST_LENGTH 16
 
