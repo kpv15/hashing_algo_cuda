@@ -51,6 +51,7 @@ class SHA1_cpu : public IHashingAlgorithm {
     }
 
     void createWorkingBuffer(const char *word) {
+        uint8_t *u_word = (uint8_t *) word;
         unsigned long int calculatedWorkingBufferLength = calculateWorkingBufferLength();
         if (workingBuffer != nullptr && calculatedWorkingBufferLength != workingBufferLength)
             delete[] workingBuffer;
@@ -58,45 +59,99 @@ class SHA1_cpu : public IHashingAlgorithm {
             workingBuffer = new unsigned char[calculatedWorkingBufferLength];
             workingBufferLength = calculatedWorkingBufferLength;
             numberOfChunks = workingBufferLength / 64;
-            workingBuffer[defaultWordLength] = 0b10000000;
-            std::memset(workingBuffer + defaultWordLength + 1, 0, workingBufferLength - defaultWordLength - 1 - 8);
-            reinterpret_cast<unsigned long *>(workingBuffer)[workingBufferLength / 8 - 1] = 8 * defaultWordLength;
+//            workingBuffer[defaultWordLength] = 0b10000000;
         }
-        std::memcpy(workingBuffer, word, defaultWordLength);
+            int i = 0, j, k = 0;
+            while (i < defaultWordLength) {
+                j = (i / 4) * 4 + 3 - (i % 4);
+                workingBuffer[j] = word[i];
+                i++;
+            }
+            j = (i / 4) * 4 + 3 - (i % 4);
+            workingBuffer[j] = 0b10000000;
+            i++;
+            while (i < workingBufferLength - 2) {
+                j = (i / 4) * 4 + 3 - (i % 4);
+                workingBuffer[j] = 0b00000000;
+                i++;
+            }
+//            workingBuffer[workingBufferLength]
+
+            workingBuffer[j] = reinterpret_cast<uint32_t *>(&defaultWordLength)[k] * 8;
+            uint32_t l = (defaultWordLength*8) % 0xFFFFFFFF;
+            uint32_t h = (defaultWordLength*8) / 0xFFFFFFFF;;
+            std::memcpy(workingBuffer + workingBufferLength - 4, &l, defaultWordLength);
+            std::memcpy(workingBuffer + workingBufferLength - 2, &h, defaultWordLength);
+
+
+//            std::memset(workingBuffer + defaultWordLength + 1, 0, workingBufferLength - defaultWordLength - 1 - 8);
+//            reinterpret_cast<unsigned long *>(workingBuffer)[workingBufferLength / 8 - 1] = 8 * defaultWordLength;
+
+
+//        std::memcpy(workingBuffer, word, defaultWordLength);
     }
 
 public:
-    void setDefaultWordLength(unsigned int i) override;
 
-    unsigned int getDigestLength() override;
+    void setDefaultWordLength(unsigned int i)
 
-    void calculateHashSum(unsigned char **digest, const char *word) {
+    override;
+
+    unsigned int getDigestLength()
+
+    override;
+
+    void calculateHashSum(uint8_t **digest, const char *word) {
 
         createWorkingBuffer(word);
         uint32_t w[80];
 
         block mdBuffer = DEFAULT_DIGEST_BUFFER;
         block stepBuffer;
-        uint temp;
+        uint32_t temp;
 
         for (unsigned int chunkNum = 0; chunkNum < numberOfChunks; chunkNum++) {
-            memcpy(w, workingBuffer + chunkNum * 16, 16);
+            memcpy(w, workingBuffer + chunkNum * 16, 16 * sizeof(uint32_t));
 
-            for (int i = 16; i < 79; i++)
-                w[i] = leftRotate(w[i - 3] | w[i - 8] | w[i - 14] | w[i - 16], 1);
+            for (int i = 16; i <= 79; i++)
+                w[i] = leftRotate(w[i - 3] ^ w[i - 8] ^ w[i - 14] ^ w[i - 16], 1);
 
             stepBuffer = mdBuffer;
 
-            for (int i = 0; i < 79; i++){
-                if(i<=16);
-                if(i<=39);
-                if(i<=59);
-                else;
+            for (int i = 0; i <= 79; i++) {
+                if (i <= 19)
+                    temp = leftRotate(stepBuffer.a, 5) + funF(i, stepBuffer.b, stepBuffer.c, stepBuffer.d) +
+                           stepBuffer.e + w[i] + 0x5A827999;
+                else if (i <= 39)
+                    temp = leftRotate(stepBuffer.a, 5) + funG(i, stepBuffer.b, stepBuffer.c, stepBuffer.d) +
+                           stepBuffer.e + w[i] + 0x6ED9EBA1;
+                else if (i <= 59)
+                    temp = leftRotate(stepBuffer.a, 5) + funH(i, stepBuffer.b, stepBuffer.c, stepBuffer.d) +
+                           stepBuffer.e + w[i] + 0x8F1BBCDC;
+                else
+                    temp = leftRotate(stepBuffer.a, 5) + funI(i, stepBuffer.b, stepBuffer.c, stepBuffer.d) +
+                           stepBuffer.e + w[i] + 0xCA62C1D6;
+                stepBuffer.e = stepBuffer.d;
+                stepBuffer.d = stepBuffer.c;
+                stepBuffer.c = leftRotate(stepBuffer.b, 30);
+                stepBuffer.b = stepBuffer.a;
+                stepBuffer.a = temp;
             }
-
+            mdBuffer.a += stepBuffer.a;
+            mdBuffer.b += stepBuffer.b;
+            mdBuffer.c += stepBuffer.c;
+            mdBuffer.d += stepBuffer.d;
+            mdBuffer.e += stepBuffer.e;
         }
 
+        mdBuffer.a = __builtin_bswap32(mdBuffer.a);
+        mdBuffer.b = __builtin_bswap32(mdBuffer.b);
+        mdBuffer.c = __builtin_bswap32(mdBuffer.c);
+        mdBuffer.d = __builtin_bswap32(mdBuffer.d);
+        mdBuffer.e = __builtin_bswap32(mdBuffer.e);
 
+        *digest = new unsigned char[DIGEST_LENGTH];
+        memcpy(*digest, &mdBuffer, DIGEST_LENGTH);
     };
 
     virtual ~SHA1_cpu();

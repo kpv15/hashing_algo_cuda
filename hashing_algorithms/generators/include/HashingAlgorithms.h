@@ -15,5 +15,6 @@
 #include "SHA1_ssl.h"
 #include "SHA1_cpu.h"
 #include "SHA1sslDigestGenerator.h"
+#include "SHA1cpuDigestGenerator.h"
 
 #endif //INYNIERKA_HASHINGALGORITHMS_H

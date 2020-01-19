@@ -70,7 +70,13 @@ int main(int argc, char **argv) {
                     generateDigests(sha1sslDigestGenerator);
                     fileList.push_back(sha1sslDigestGenerator->getAlgorithmName() + ".txt");
                     delete sha1sslDigestGenerator;
+                } else if (!strcmp(argv[i + 1], "sha1_cpu")) {
+                    auto *sha1cpuDigestGenerator = new SHA1cpuDigestGenerator();
+                    generateDigests(sha1cpuDigestGenerator);
+                    fileList.push_back(sha1cpuDigestGenerator->getAlgorithmName() + ".txt");
+                    delete sha1cpuDigestGenerator;
                 }
+
             } else std::cout << "too few arguments for -g parameters, correct format -g n length" << std::endl;
         }
     }
@@ -152,8 +158,8 @@ void generateDigests(IGenerator *generator) {
 
     if (digits != nullptr) {
         for (unsigned long int i = 0; i < n; i++) {
-//            char *word = words[i];
-//            std::cout <<  std::string(word, word + length) << "\t" << hexParser(digits[i]) << std::endl;
+            char *word = words[i];
+            std::cout <<  std::string(word, word + length) << "\t" << hexParser(digits[i]) << std::endl;
             outputDigest << hexParser(digits[i]) << std::endl;
 //            outputDigestHex.write((char *) (digits[i]), digestLength);
         }

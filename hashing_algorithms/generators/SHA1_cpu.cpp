@@ -17,3 +17,15 @@ unsigned int SHA1_cpu::calculateWorkingBufferLength() {
     if (toAdd == 0) toAdd = 64;
     return defaultWordLength + toAdd + 8;
 }
+
+SHA1_cpu::~SHA1_cpu() {
+    delete[] workingBuffer;
+}
+
+void SHA1_cpu::setDefaultWordLength(unsigned int i) {
+    this->defaultWordLength = i;
+}
+
+unsigned int SHA1_cpu::getDigestLength() {
+    return DIGEST_LENGTH;
+}
