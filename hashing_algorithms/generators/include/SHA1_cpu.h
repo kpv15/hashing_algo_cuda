@@ -59,7 +59,6 @@ class SHA1_cpu : public IHashingAlgorithm {
             workingBuffer = new unsigned char[calculatedWorkingBufferLength];
             workingBufferLength = calculatedWorkingBufferLength;
             numberOfChunks = workingBufferLength / 64;
-//            workingBuffer[defaultWordLength] = 0b10000000;
         }
             int i = 0, j, k = 0;
             while (i < defaultWordLength) {
@@ -75,20 +74,13 @@ class SHA1_cpu : public IHashingAlgorithm {
                 workingBuffer[j] = 0b00000000;
                 i++;
             }
-//            workingBuffer[workingBufferLength]
 
             workingBuffer[j] = reinterpret_cast<uint32_t *>(&defaultWordLength)[k] * 8;
             uint32_t l = (defaultWordLength*8) % 0xFFFFFFFF;
             uint32_t h = (defaultWordLength*8) / 0xFFFFFFFF;;
-            std::memcpy(workingBuffer + workingBufferLength - 4, &l, defaultWordLength);
-            std::memcpy(workingBuffer + workingBufferLength - 2, &h, defaultWordLength);
+            std::memcpy(workingBuffer + workingBufferLength - 4, &l, sizeof(uint32_t));
+            std::memcpy(workingBuffer + workingBufferLength - 2, &h, sizeof(uint32_t));
 
-
-//            std::memset(workingBuffer + defaultWordLength + 1, 0, workingBufferLength - defaultWordLength - 1 - 8);
-//            reinterpret_cast<unsigned long *>(workingBuffer)[workingBufferLength / 8 - 1] = 8 * defaultWordLength;
-
-
-//        std::memcpy(workingBuffer, word, defaultWordLength);
     }
 
 public:
@@ -111,7 +103,7 @@ public:
         uint32_t temp;
 
         for (unsigned int chunkNum = 0; chunkNum < numberOfChunks; chunkNum++) {
-            memcpy(w, workingBuffer + chunkNum * 16, 16 * sizeof(uint32_t));
+            memcpy(w, workingBuffer + chunkNum * 16 * sizeof(uint32_t), 16 * sizeof(uint32_t));
 
             for (int i = 16; i <= 79; i++)
                 w[i] = leftRotate(w[i - 3] ^ w[i - 8] ^ w[i - 14] ^ w[i - 16], 1);
