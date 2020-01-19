@@ -19,8 +19,8 @@ void compareResults(std::vector<std::string> filesNames);
 
 int main(int argc, char **argv) {
 
-    int length = 0;
-    int n = 0;
+    unsigned int length = 0;
+    unsigned int n = 0;
     std::vector<std::string> fileList;
 
     for (unsigned int i = 1; i < argc; i++) {
@@ -159,7 +159,8 @@ void generateDigests(IGenerator *generator) {
     if (digits != nullptr) {
         for (unsigned long int i = 0; i < n; i++) {
             char *word = words[i];
-            std::cout <<  std::string(word, word + length) << "\t" << hexParser(digits[i]) << std::endl;
+//            std::cout <<  std::string(word, word + length) << "\t" << hexParser(digits[i]) << std::endl;
+            std::cout << hexParser(digits[i]) << std::endl;
             outputDigest << hexParser(digits[i]) << std::endl;
 //            outputDigestHex.write((char *) (digits[i]), digestLength);
         }
