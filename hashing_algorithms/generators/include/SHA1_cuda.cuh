@@ -1,11 +1,15 @@
-#ifndef INYNIERKA_MD5_CUDA_CUH
-#define INYNIERKA_MD5_CUDA_CUH
+//
+// Created by grzegorz on 20.01.2020.
+//
+
+#ifndef INYNIERKA_SHA1_CUDA_CUH
+#define INYNIERKA_SHA1_CUDA_CUH
 
 #include "../../../cuda_clion_hack.hpp"
 
-namespace MD5_cuda {
-
+namespace SHA1_cuda{
     __global__ void calculateHashSum(unsigned char *digest, char *word, unsigned long int workingBufferLength,
                                      unsigned long int wordLength, unsigned long int n);
 }
-#endif //INYNIERKA_MD5_CUDA_CUH
+
+#endif //INYNIERKA_SHA1_CUDA_CUH

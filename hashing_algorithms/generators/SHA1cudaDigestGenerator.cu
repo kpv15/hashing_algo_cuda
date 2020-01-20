@@ -1,23 +1,29 @@
 //
-// Created by grzegorz on 15.12.2019.
+// Created by grzegorz on 20.01.2020.
 //
 
-
-#include "include/MD5cudaDigestGenerator.cuh"
-#include <iostream>
+#include "include/SHA1cudaDigestGenerator.cuh"
+#include "include/SHA1_cuda.cuh"
+#include <cmath>
 #include <chrono>
 #include <cstring>
-#include <cmath>
+#include <iostream>
 
-std::string MD5cudaDigestGenerator::getAlgorithmName() {
+std::string SHA1cudaDigestGenerator::getAlgorithmName() {
     return "md5_cuda";
 }
 
-unsigned int MD5cudaDigestGenerator::getDigestLength() {
-    return 16;
+unsigned int SHA1cudaDigestGenerator::getDigestLength() {
+    return 20;
 }
 
-void MD5cudaDigestGenerator::generate() {
+unsigned int SHA1cudaDigestGenerator::calculateWorkingBufferLength(unsigned int defaultWordLength) {
+    unsigned int toAdd = 64 - (defaultWordLength + 8) % 64;
+    if (toAdd == 0) toAdd = 64;
+    return defaultWordLength + toAdd + 8;
+}
+
+void SHA1cudaDigestGenerator::generate() {
     unsigned char *digestGPU;
     char *wordsGPU;
 
@@ -60,7 +66,7 @@ void MD5cudaDigestGenerator::generate() {
 
     auto startKernel = std::chrono::high_resolution_clock::now();
 
-    MD5_cuda::calculateHashSum <<< gridSize, blockSize >>> (digestGPU, wordsGPU, workingBufferLength, length_to_gen, n_to_gen);
+    SHA1_cuda::calculateHashSum <<< gridSize, blockSize >>> (digestGPU, wordsGPU, workingBufferLength, length_to_gen, n_to_gen);
 
     cudaDeviceSynchronize();
 
@@ -88,10 +94,4 @@ void MD5cudaDigestGenerator::generate() {
 
     n = n_to_gen;
     length = length_to_gen;
-}
-
-unsigned int MD5cudaDigestGenerator::calculateWorkingBufferLength(unsigned int defaultWordLength) {
-    unsigned int toAdd = 64 - (defaultWordLength + 8) % 64;
-    if (toAdd == 0) toAdd = 64;
-    return defaultWordLength + toAdd + 8;
 }

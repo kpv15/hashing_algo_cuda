@@ -11,16 +11,7 @@ set(UTILS_SOURCE
         utils/include/ResultComparator.h
         utils/WordsGenerator.cpp
         utils/ResultComparator.cpp
-        hashing_algorithms/generators/MD5cpuDigestGenerator.cpp
-        hashing_algorithms/generators/include/MD5cpuDigestGenerator.h
-        hashing_algorithms/generators/SHA1_cpu.cpp
-        hashing_algorithms/generators/include/SHA1_cpu.h
-        hashing_algorithms/generators/SHA1_ssl.cpp
-        hashing_algorithms/generators/include/SHA1_ssl.h
-        hashing_algorithms/generators/SHA1sslDigestGenerator.cpp
-        hashing_algorithms/generators/include/SHA1sslDigestGenerator.h
-        hashing_algorithms/generators/SHA1cpuDigestGenerator.cpp
-        hashing_algorithms/generators/include/SHA1cpuDigestGenerator.h)
+)
 
 add_executable(main
         main.cpp
@@ -39,6 +30,20 @@ add_executable(main
         hashing_algorithms/generators/MD5_cuda.cu
         hashing_algorithms/generators/IGenerator.cpp
         hashing_algorithms/generators/include/MD5_cuda.cuh
+        hashing_algorithms/generators/MD5cpuDigestGenerator.cpp
+        hashing_algorithms/generators/include/MD5cpuDigestGenerator.h
+        hashing_algorithms/generators/SHA1_cpu.cpp
+        hashing_algorithms/generators/include/SHA1_cpu.h
+        hashing_algorithms/generators/SHA1_ssl.cpp
+        hashing_algorithms/generators/include/SHA1_ssl.h
+        hashing_algorithms/generators/SHA1sslDigestGenerator.cpp
+        hashing_algorithms/generators/include/SHA1sslDigestGenerator.h
+        hashing_algorithms/generators/SHA1cpuDigestGenerator.cpp
+        hashing_algorithms/generators/include/SHA1cpuDigestGenerator.h
+        hashing_algorithms/generators/SHA1cudaDigestGenerator.cu
+        hashing_algorithms/generators/include/SHA1cudaDigestGenerator.cuh
+        hashing_algorithms/generators/SHA1_cuda.cu
+        hashing_algorithms/generators/include/SHA1_cuda.cuh
         ${UTILS_SOURCE})
 
 target_link_libraries(main OpenSSL::SSL)

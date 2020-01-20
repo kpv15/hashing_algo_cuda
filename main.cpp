@@ -75,6 +75,10 @@ int main(int argc, char **argv) {
                     generateDigests(sha1cpuDigestGenerator);
                     fileList.push_back(sha1cpuDigestGenerator->getAlgorithmName() + ".txt");
                     delete sha1cpuDigestGenerator;
+                } else if (!strcmp(argv[i + 1], "sha1_cuda")) {
+                    auto *sha1vudaDigestGenerator = new SHA1cudaDigestGenerator();
+                    generateDigests(sha1vudaDigestGenerator);
+                    fileList.push_back(sha1vudaDigestGenerator->getAlgorithmName() + ".txt");
                 }
 
             } else std::cout << "too few arguments for -g parameters, correct format -g n length" << std::endl;
