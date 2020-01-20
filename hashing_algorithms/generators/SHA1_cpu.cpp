@@ -83,6 +83,11 @@ void SHA1_cpu::calculateHashSum(uint8_t **digest, const char *word) {
     memcpy(*digest, &mdBuffer, DIGEST_LENGTH);
 }
 
+uint32_t swap_bits(uint32_t x) {
+    uint8_t *ptr = reinterpret_cast<uint8_t *>(&x);
+    return (ptr[3] << 0) | (ptr[2] << 8) | (ptr[1] << 16) | (ptr[0] << 24);
+}
+
 void SHA1_cpu::createWorkingBuffer(const char *word) {
     unsigned long int calculatedWorkingBufferLength = calculateWorkingBufferLength();
     if (workingBuffer != nullptr && calculatedWorkingBufferLength != workingBufferLength)
@@ -92,7 +97,14 @@ void SHA1_cpu::createWorkingBuffer(const char *word) {
         workingBufferLength = calculatedWorkingBufferLength;
         numberOfChunks = workingBufferLength / 64;
     }
+
     unsigned int i = 0, j;
+    uint32_t *word_ptr = (uint32_t *) word;
+    uint32_t *workingbuffer_ptr = (uint32_t *) workingBuffer;
+    for (i = 0; i < defaultWordLength / 4; i++)
+        workingbuffer_ptr[i] = swap_bits(word_ptr[i]);
+    i = i * 4;
+
     while (i < defaultWordLength) {
         j = (i / 4) * 4 + 3 - (i % 4);
         workingBuffer[j] = word[i];

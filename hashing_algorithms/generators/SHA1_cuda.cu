@@ -44,11 +44,23 @@ namespace SHA1_cuda {
         return (b & c) | ((~b) & d);
     }
 
+    __device__ uint32_t swap_bits(uint32_t x) {
+        uint8_t *ptr = reinterpret_cast<uint8_t *>(&x);
+        return (ptr[3] << 0) | (ptr[2] << 8) | (ptr[1] << 16) | (ptr[0] << 24);
+    }
+
     __device__ void fillWorkingBuffer(const char *word, unsigned char *workingBuffer, unsigned int workingBufferLength,
                                       unsigned int wordLength) {
         unsigned int i = 0, j;
+//        uint32_t *word_ptr = (uint32_t *) word;
+//        uint32_t *workingbuffer_ptr = (uint32_t *) workingBuffer;
+//        for (i = 0; i < wordLength / 4; i++)
+//            workingbuffer_ptr[i] = swap_bits(word_ptr[i]);
+//        i *= 4;
+//        i = 0;//???
         while (i < wordLength) {
             j = (i / 4) * 4 + 3 - (i % 4);
+//            j = i + 3 - 2 * (i % 4);
             workingBuffer[j] = word[i];
             i++;
         }
@@ -65,18 +77,6 @@ namespace SHA1_cuda {
         std::memcpy(workingBuffer + workingBufferLength - 4, (uint32_t *) &tmp, sizeof(uint32_t));
         std::memcpy(workingBuffer + workingBufferLength - 8, (uint32_t *) &tmp + 1, sizeof(uint32_t));
 
-    }
-
-    __device__ uint32_t swap_bits(uint32_t x) {
-        uint8_t *ptr = reinterpret_cast<uint8_t *>(&x);
-        uint8_t tmp;
-        tmp=ptr[0];
-        ptr[0] = ptr[3];
-        ptr[3] = tmp;
-        tmp = ptr[1];
-        ptr[1] = ptr[2];
-        ptr[2] = tmp;
-        return x;
     }
 
     __global__ void calculateHashSum(unsigned char *digest, char *word, unsigned long int workingBufferLength,
