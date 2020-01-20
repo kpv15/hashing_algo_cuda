@@ -10,7 +10,7 @@
 #include <iostream>
 
 std::string SHA1cudaDigestGenerator::getAlgorithmName() {
-    return "md5_cuda";
+    return "sha1_cuda";
 }
 
 unsigned int SHA1cudaDigestGenerator::getDigestLength() {
