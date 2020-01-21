@@ -57,9 +57,9 @@ namespace SHA1_cuda {
             workingBuffer[i] = swap_bits(word_ptr[i]);
 
         uint32_t split_word = 0;
-        for(j = 0; j < wordLength%4 ;j++)
-            ((uint8_t *)&split_word)[3-j]=word[wordLength/4*4+j];
-        ((uint8_t *)&split_word)[3-j]=0b10000000;
+        for (j = 0; j < wordLength % 4; j++)
+            ((uint8_t *) &split_word)[3 - j] = word[wordLength / 4 * 4 + j];
+        ((uint8_t *) &split_word)[3 - j] = 0b10000000;
 
         workingBuffer[i] = split_word;
         i++;
@@ -78,11 +78,11 @@ namespace SHA1_cuda {
                                      unsigned long int wordLength, unsigned long int n) {
 
         unsigned long int threadId = blockIdx.x * blockDim.x + threadIdx.x;
-        unsigned int wordBufferLength = wordLength+4-wordLength%4;
+        unsigned int wordBufferLength = wordLength + 4 - wordLength % 4;
 
         if (threadId < n) {
 
-            uint32_t workingBuffer[150];
+            uint32_t workingBuffer[200];
 
             fillWorkingBuffer(word + wordBufferLength * threadId, workingBuffer, workingBufferLength, wordLength);
 
@@ -101,6 +101,7 @@ namespace SHA1_cuda {
 
                 stepBuffer = mdBuffer;
 
+#pragma unroll
                 for (int i = 0; i <= 79; i++) {
                     if (i <= 19)
                         temp = leftRotate(stepBuffer.a, 5) + funF(stepBuffer.b, stepBuffer.c, stepBuffer.d) +

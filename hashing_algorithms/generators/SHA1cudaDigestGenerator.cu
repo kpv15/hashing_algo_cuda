@@ -30,8 +30,8 @@ void SHA1cudaDigestGenerator::generate() {
     auto startLoad = std::chrono::high_resolution_clock::now();
 
     unsigned long int workingBufferLength = calculateWorkingBufferLength(length_to_gen);
-    if (workingBufferLength > 250) {
-        std::cout << "error workingBufferLength > 2000 " << std::endl;
+    if (workingBufferLength > 200) {
+        std::cout << "error workingBufferLength > 200 " << std::endl;
         return;
     }
     cudaError_t errorCode;

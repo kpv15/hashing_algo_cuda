@@ -49,7 +49,7 @@ add_executable(main
 target_link_libraries(main OpenSSL::SSL)
 
 add_executable(cracker
-        cracker.cu
+        MD5cudaCrackerStarter.cu
         dummy.cpp
         hashing_algorithms/crackers/MD5_cuda_cracker.cu
         hashing_algorithms/crackers/include/MD5_cuda_cracker.cuh
