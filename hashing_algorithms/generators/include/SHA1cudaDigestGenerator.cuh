@@ -13,7 +13,7 @@ class SHA1cudaDigestGenerator: public IGenerator {
     static unsigned int calculateWorkingBufferLength(unsigned int defaultWordLength);
 
 public:
-    void generate();;
+    void generate();
 
     unsigned int getDigestLength() override;
 

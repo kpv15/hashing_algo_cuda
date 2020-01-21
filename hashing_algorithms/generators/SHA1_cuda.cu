@@ -49,56 +49,52 @@ namespace SHA1_cuda {
         return (ptr[3] << 0) | (ptr[2] << 8) | (ptr[1] << 16) | (ptr[0] << 24);
     }
 
-    __device__ void fillWorkingBuffer(const char *word, unsigned char *workingBuffer, unsigned int workingBufferLength,
+    __device__ void fillWorkingBuffer(const char *word, uint32_t *workingBuffer, unsigned int workingBufferLength,
                                       unsigned int wordLength) {
         unsigned int i = 0, j;
-//        uint32_t *word_ptr = (uint32_t *) word;
-//        uint32_t *workingbuffer_ptr = (uint32_t *) workingBuffer;
-//        for (i = 0; i < wordLength / 4; i++)
-//            workingbuffer_ptr[i] = swap_bits(word_ptr[i]);
-//        i *= 4;
-//        i = 0;//???
-        while (i < wordLength) {
-            j = (i / 4) * 4 + 3 - (i % 4);
-//            j = i + 3 - 2 * (i % 4);
-            workingBuffer[j] = word[i];
-            i++;
-        }
-        j = (i / 4) * 4 + 3 - (i % 4);
-        workingBuffer[j] = 0b10000000;
+        uint32_t *word_ptr = (uint32_t *) word;
+        for (i = 0; i < wordLength / 4; i++)
+            workingBuffer[i] = swap_bits(word_ptr[i]);
+
+        uint32_t split_word = 0;
+        for(j = 0; j < wordLength%4 ;j++)
+            ((uint8_t *)&split_word)[3-j]=word[wordLength/4*4+j];
+        ((uint8_t *)&split_word)[3-j]=0b10000000;
+
+        workingBuffer[i] = split_word;
         i++;
+
         while (i < workingBufferLength - 2) {
-            j = (i / 4) * 4 + 3 - (i % 4);
-            workingBuffer[j] = 0b00000000;
-            i++;
+            workingBuffer[i++] = 0;
         }
 
         uint64_t tmp = wordLength * 8;
-        std::memcpy(workingBuffer + workingBufferLength - 4, (uint32_t *) &tmp, sizeof(uint32_t));
-        std::memcpy(workingBuffer + workingBufferLength - 8, (uint32_t *) &tmp + 1, sizeof(uint32_t));
+        std::memcpy(workingBuffer + i++, (uint32_t *) &tmp + 1, sizeof(uint32_t));
+        std::memcpy(workingBuffer + i++, (uint32_t *) &tmp, sizeof(uint32_t));
 
     }
 
-    __global__ void calculateHashSum(unsigned char *digest, char *word, unsigned long int workingBufferLength,
+    __global__ void calculateHashSum(unsigned char *digest, const char *word, unsigned long int workingBufferLength,
                                      unsigned long int wordLength, unsigned long int n) {
 
         unsigned long int threadId = blockIdx.x * blockDim.x + threadIdx.x;
+        unsigned int wordBufferLength = wordLength+4-wordLength%4;
 
         if (threadId < n) {
 
-            unsigned char workingBuffer[1000];
+            uint32_t workingBuffer[150];
 
-            fillWorkingBuffer(word + wordLength * threadId, workingBuffer, workingBufferLength, wordLength);
+            fillWorkingBuffer(word + wordBufferLength * threadId, workingBuffer, workingBufferLength, wordLength);
 
             uint32_t w[80];
-            unsigned int numberOfChunks = workingBufferLength / 64;
+            unsigned int numberOfChunks = workingBufferLength / 16;
 
             block mdBuffer = DEFAULT_DIGEST_BUFFER;
             block stepBuffer;
             uint32_t temp;
 
             for (unsigned int chunkNum = 0; chunkNum < numberOfChunks; chunkNum++) {
-                memcpy(w, workingBuffer + chunkNum * 16 * sizeof(uint32_t), 16 * sizeof(uint32_t));
+                memcpy(w, workingBuffer + chunkNum * 16, 16 * sizeof(uint32_t));
 
                 for (int i = 16; i <= 79; i++)
                     w[i] = leftRotate(w[i - 3] ^ w[i - 8] ^ w[i - 14] ^ w[i - 16], 1);
@@ -137,6 +133,7 @@ namespace SHA1_cuda {
             mdBuffer.d = swap_bits(mdBuffer.d);
             mdBuffer.e = swap_bits(mdBuffer.e);
 
+//            mdBuffer.a=mdBuffer.b=mdBuffer.c=mdBuffer.d=mdBuffer.e = 0;
             memcpy(digest + threadId * DIGEST_LENGTH, &mdBuffer, DIGEST_LENGTH);
 
         }

@@ -8,7 +8,7 @@
 #include "../../../cuda_clion_hack.hpp"
 
 namespace SHA1_cuda{
-    __global__ void calculateHashSum(unsigned char *digest, char *word, unsigned long int workingBufferLength,
+    __global__ void calculateHashSum(unsigned char *digest, const char *word, unsigned long int workingBufferLength,
                                      unsigned long int wordLength, unsigned long int n);
 }
 

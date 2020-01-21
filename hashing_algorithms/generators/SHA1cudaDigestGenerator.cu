@@ -20,7 +20,7 @@ unsigned int SHA1cudaDigestGenerator::getDigestLength() {
 unsigned int SHA1cudaDigestGenerator::calculateWorkingBufferLength(unsigned int defaultWordLength) {
     unsigned int toAdd = 64 - (defaultWordLength + 8) % 64;
     if (toAdd == 0) toAdd = 64;
-    return defaultWordLength + toAdd + 8;
+    return (defaultWordLength + toAdd + 8)/4;
 }
 
 void SHA1cudaDigestGenerator::generate() {
@@ -30,7 +30,7 @@ void SHA1cudaDigestGenerator::generate() {
     auto startLoad = std::chrono::high_resolution_clock::now();
 
     unsigned long int workingBufferLength = calculateWorkingBufferLength(length_to_gen);
-    if (workingBufferLength > 2000) {
+    if (workingBufferLength > 250) {
         std::cout << "error workingBufferLength > 2000 " << std::endl;
         return;
     }
@@ -42,7 +42,9 @@ void SHA1cudaDigestGenerator::generate() {
                   << std::endl;
         return;
     };
-    if ((errorCode = cudaMalloc(&wordsGPU, sizeof(char) * n_to_gen * length_to_gen)) != cudaSuccess) {
+
+    unsigned int wordBufferLength = length_to_gen+4-length_to_gen%4;
+    if ((errorCode = cudaMalloc(&wordsGPU, sizeof(char) * n_to_gen * wordBufferLength)) != cudaSuccess) {
         std::cout << "error during alloc memory for words on GPU error code: " << cudaGetErrorName(errorCode)
                   << std::endl;
         return;
@@ -50,7 +52,7 @@ void SHA1cudaDigestGenerator::generate() {
 
     char *words_tmp = new char[length_to_gen * n_to_gen];
     for (unsigned int i = 0; i < n_to_gen; i++) {
-        memcpy(words_tmp + i * length_to_gen, words[i], sizeof(unsigned char) * length_to_gen);
+        memcpy(words_tmp + i * wordBufferLength, words[i], sizeof(unsigned char) * length_to_gen);
     }
 
     cudaMemcpy(wordsGPU, words_tmp, sizeof(unsigned char) * length_to_gen * n_to_gen, cudaMemcpyHostToDevice);
@@ -68,7 +70,8 @@ void SHA1cudaDigestGenerator::generate() {
 
     SHA1_cuda::calculateHashSum <<< gridSize, blockSize >>> (digestGPU, wordsGPU, workingBufferLength, length_to_gen, n_to_gen);
 
-    cudaDeviceSynchronize();
+    errorCode = cudaDeviceSynchronize();
+    std::cout << "kernel quit code: " << cudaGetErrorName(errorCode) << std::endl;
 
     auto stopKernel = std::chrono::high_resolution_clock::now();
     auto durationKernel = std::chrono::duration_cast<std::chrono::milliseconds>(stopKernel - startKernel);
