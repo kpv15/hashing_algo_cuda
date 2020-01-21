@@ -50,12 +50,12 @@ void SHA1cudaDigestGenerator::generate() {
         return;
     };
 
-    char *words_tmp = new char[length_to_gen * n_to_gen];
+    char *words_tmp = new char[wordBufferLength * n_to_gen];
     for (unsigned int i = 0; i < n_to_gen; i++) {
         memcpy(words_tmp + i * wordBufferLength, words[i], sizeof(unsigned char) * length_to_gen);
     }
 
-    cudaMemcpy(wordsGPU, words_tmp, sizeof(unsigned char) * length_to_gen * n_to_gen, cudaMemcpyHostToDevice);
+    cudaMemcpy(wordsGPU, words_tmp, sizeof(unsigned char) * wordBufferLength * n_to_gen, cudaMemcpyHostToDevice);
     delete[] words_tmp;
 
     auto stopLoad = std::chrono::high_resolution_clock::now();
