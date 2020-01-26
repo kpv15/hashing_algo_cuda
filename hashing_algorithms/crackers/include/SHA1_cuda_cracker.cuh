@@ -8,8 +8,7 @@
 
 #define DIGEST_LENGTH 20
 
-__global__ void
-calculateHashSum(unsigned char *digest, char *message, int workingBufferLength, int lenght);
+__global__ void calculateHashSum(unsigned char *digest_g, char *message, int workingBufferLength, int lenght);
 
 
 #endif //INYNIERKA_SHA1CUDACRACKER_CUH
