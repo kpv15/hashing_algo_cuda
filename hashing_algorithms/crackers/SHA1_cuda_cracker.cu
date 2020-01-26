@@ -1,6 +1,6 @@
 #include <cstring>
 #include <cstdint>
-#include "include/SHA1_cuda_cracker.cuh"
+#include "include/MD5_cuda_cracker.cuh"
 #include "../../cuda_clion_hack.hpp"
 
 struct block {
@@ -74,15 +74,20 @@ __device__ void fillWorkingBuffer(const char *word, uint32_t *workingBuffer, uns
 }
 
 __global__ void
-calculateHashSum(unsigned char *digest_g, char *words, int workingBufferLength, int lenght) {
+calculateHashSum(uint32_t *digest_g, char *words, int workingBufferLength, int lenght) {
 
-    __shared__ uint32_t digest[DIGEST_LENGTH / 4];
-    for (int i = threadIdx.x; i < DIGEST_LENGTH / 4; i += blockDim.x)
-        digest[i] = reinterpret_cast<uint32_t *>(digest_g)[i];
+    __shared__ uint32_t digest[DIGEST_LENGTH/4];
+    for(int i = threadIdx.x; i < DIGEST_LENGTH/4; i+=blockDim.x)
+        digest[i]=digest_g[i];
     __syncthreads();
 
     unsigned char workingBuffer[MAX_WORKING_BUFFER_SIZE];
     //init working buffer
+
+
+    workingBuffer[lenght] = 0b10000000;
+    memset(workingBuffer + lenght + 1, 0, workingBufferLength - lenght - 1 - 8);
+    reinterpret_cast<unsigned long *>(workingBuffer)[workingBufferLength / 8 - 1] = 8 * lenght;
 
     workingBuffer[0] = threadIdx.x;
     workingBuffer[1] = blockIdx.x;
@@ -91,69 +96,105 @@ calculateHashSum(unsigned char *digest_g, char *words, int workingBufferLength, 
     for (int i = 0; i < lenght - 2; i++)
         combinations *= 256;
 
-    unsigned int numberOfChunks = workingBufferLength / 16;
+    unsigned int numberOfChunks = workingBufferLength / 64;
 
     for (long j = 0; j < combinations; j++) {
 
         memcpy(workingBuffer + 2, &j, (lenght - 2) * sizeof(unsigned char));
 
         block mdBuffer = DEFAULT_DIGEST_BUFFER;
-        block stepBuffer;
-        uint32_t temp;
-        uint32_t w[80];
 
+        for (unsigned long i = 0; i < numberOfChunks; i++) {
+//            memcpy(X, workingBuffer + i * 16 * sizeof(unsigned int), 16 * sizeof(unsigned int));
+            unsigned int *X = reinterpret_cast<unsigned int *>(workingBuffer + i * 16 * sizeof(unsigned int));
+            uint32_t a = mdBuffer.a;
+            uint32_t b = mdBuffer.b;
+            uint32_t c = mdBuffer.c;
+            uint32_t d = mdBuffer.d;
 
-        uint64_t tmp = lenght * 8;
-        std::memcpy(workingBuffer + workingBufferLength - 2, (uint32_t *) &tmp + 1, sizeof(uint32_t));
-        std::memcpy(workingBuffer + workingBufferLength - 1, (uint32_t *) &tmp, sizeof(uint32_t));
+            a = b + leftRotate((a + funF(b, c, d) + X[0] + 0xd76aa478), 7);
+            d = a + leftRotate((d + funF(a, b, c) + X[1] + 0xe8c7b756), 12);
+            c = d + leftRotate((c + funF(d, a, b) + X[2] + 0x242070db), 17);
+            b = c + leftRotate((b + funF(c, d, a) + X[3] + 0xc1bdceee), 22);
+            a = b + leftRotate((a + funF(b, c, d) + X[4] + 0xf57c0faf), 7);
+            d = a + leftRotate((d + funF(a, b, c) + X[5] + 0x4787c62a), 12);
+            c = d + leftRotate((c + funF(d, a, b) + X[6] + 0xa8304613), 17);
+            b = c + leftRotate((b + funF(c, d, a) + X[7] + 0xfd469501), 22);
+            a = b + leftRotate((a + funF(b, c, d) + X[8] + 0x698098d8), 7);
+            d = a + leftRotate((d + funF(a, b, c) + X[9] + 0x8b44f7af), 12);
+            c = d + leftRotate((c + funF(d, a, b) + X[10] + 0xffff5bb1), 17);
+            b = c + leftRotate((b + funF(c, d, a) + X[11] + 0x895cd7be), 22);
+            a = b + leftRotate((a + funF(b, c, d) + X[12] + 0x6b901122), 7);
+            d = a + leftRotate((d + funF(a, b, c) + X[13] + 0xfd987193), 12);
+            c = d + leftRotate((c + funF(d, a, b) + X[14] + 0xa679438e), 17);
+            b = c + leftRotate((b + funF(c, d, a) + X[15] + 0x49b40821), 22);
 
+            a = b + leftRotate((a + funG(b, c, d) + X[1] + 0xf61e2562), 5);
+            d = a + leftRotate((d + funG(a, b, c) + X[6] + 0xc040b340), 9);
+            c = d + leftRotate((c + funG(d, a, b) + X[11] + 0x265e5a51), 14);
+            b = c + leftRotate((b + funG(c, d, a) + X[0] + 0xe9b6c7aa), 20);
+            a = b + leftRotate((a + funG(b, c, d) + X[5] + 0xd62f105d), 5);
+            d = a + leftRotate((d + funG(a, b, c) + X[10] + 0x02441453), 9);
+            c = d + leftRotate((c + funG(d, a, b) + X[15] + 0xd8a1e681), 14);
+            b = c + leftRotate((b + funG(c, d, a) + X[4] + 0xe7d3fbc8), 20);
+            a = b + leftRotate((a + funG(b, c, d) + X[9] + 0x21e1cde6), 5);
+            d = a + leftRotate((d + funG(a, b, c) + X[14] + 0xc33707d6), 9);
+            c = d + leftRotate((c + funG(d, a, b) + X[3] + 0xf4d50d87), 14);
+            b = c + leftRotate((b + funG(c, d, a) + X[8] + 0x455a14ed), 20);
+            a = b + leftRotate((a + funG(b, c, d) + X[13] + 0xa9e3e905), 5);
+            d = a + leftRotate((d + funG(a, b, c) + X[2] + 0xfcefa3f8), 9);
+            c = d + leftRotate((c + funG(d, a, b) + X[7] + 0x676f02d9), 14);
+            b = c + leftRotate((b + funG(c, d, a) + X[12] + 0x8d2a4c8a), 20);
 
-        for (unsigned int chunkNum = 0; chunkNum < numberOfChunks; chunkNum++) {
-            memcpy(w, workingBuffer + chunkNum * 16, 16 * sizeof(uint32_t));
+            a = b + leftRotate((a + funH(b, c, d) + X[5] + 0xfffa3942), 4);
+            d = a + leftRotate((d + funH(a, b, c) + X[8] + 0x8771f681), 11);
+            c = d + leftRotate((c + funH(d, a, b) + X[11] + 0x6d9d6122), 16);
+            b = c + leftRotate((b + funH(c, d, a) + X[14] + 0xfde5380c), 23);
+            a = b + leftRotate((a + funH(b, c, d) + X[1] + 0xa4beea44), 4);
+            d = a + leftRotate((d + funH(a, b, c) + X[4] + 0x4bdecfa9), 11);
+            c = d + leftRotate((c + funH(d, a, b) + X[7] + 0xf6bb4b60), 16);
+            b = c + leftRotate((b + funH(c, d, a) + X[10] + 0xbebfbc70), 23);
+            a = b + leftRotate((a + funH(b, c, d) + X[13] + 0x289b7ec6), 4);
+            d = a + leftRotate((d + funH(a, b, c) + X[0] + 0xeaa127fa), 11);
+            c = d + leftRotate((c + funH(d, a, b) + X[3] + 0xd4ef3085), 16);
+            b = c + leftRotate((b + funH(c, d, a) + X[6] + 0x04881d05), 23);
+            a = b + leftRotate((a + funH(b, c, d) + X[9] + 0xd9d4d039), 4);
+            d = a + leftRotate((d + funH(a, b, c) + X[12] + 0xe6db99e5), 11);
+            c = d + leftRotate((c + funH(d, a, b) + X[15] + 0x1fa27cf8), 16);
+            b = c + leftRotate((b + funH(c, d, a) + X[2] + 0xc4ac5665), 23);
 
-            for (int i = 16; i <= 79; i++)
-                w[i] = leftRotate(w[i - 3] ^ w[i - 8] ^ w[i - 14] ^ w[i - 16], 1);
+            a = b + leftRotate((a + funI(b, c, d) + X[0] + 0xf4292244), 6);
+            d = a + leftRotate((d + funI(a, b, c) + X[7] + 0x432aff97), 10);
+            c = d + leftRotate((c + funI(d, a, b) + X[14] + 0xab9423a7), 15);
+            b = c + leftRotate((b + funI(c, d, a) + X[5] + 0xfc93a039), 21);
+            a = b + leftRotate((a + funI(b, c, d) + X[12] + 0x655b59c3), 6);
+            d = a + leftRotate((d + funI(a, b, c) + X[3] + 0x8f0ccc92), 10);
+            c = d + leftRotate((c + funI(d, a, b) + X[10] + 0xffeff47d), 15);
+            b = c + leftRotate((b + funI(c, d, a) + X[1] + 0x85845dd1), 21);
+            a = b + leftRotate((a + funI(b, c, d) + X[8] + 0x6fa87e4f), 6);
+            d = a + leftRotate((d + funI(a, b, c) + X[15] + 0xfe2ce6e0), 10);
+            c = d + leftRotate((c + funI(d, a, b) + X[6] + 0xa3014314), 15);
+            b = c + leftRotate((b + funI(c, d, a) + X[13] + 0x4e0811a1), 21);
+            a = b + leftRotate((a + funI(b, c, d) + X[4] + 0xf7537e82), 6);
+            d = a + leftRotate((d + funI(a, b, c) + X[11] + 0xbd3af235), 10);
+            c = d + leftRotate((c + funI(d, a, b) + X[2] + 0x2ad7d2bb), 15);
+            b = c + leftRotate((b + funI(c, d, a) + X[9] + 0xeb86d391), 21);
 
-            stepBuffer = mdBuffer;
-
-#pragma unroll
-            for (int i = 0; i <= 79; i++) {
-                if (i <= 19)
-                    temp = leftRotate(stepBuffer.a, 5) + funF(stepBuffer.b, stepBuffer.c, stepBuffer.d) +
-                           stepBuffer.e + w[i] + 0x5A827999;
-                else if (i <= 39)
-                    temp = leftRotate(stepBuffer.a, 5) + funG(stepBuffer.b, stepBuffer.c, stepBuffer.d) +
-                           stepBuffer.e + w[i] + 0x6ED9EBA1;
-                else if (i <= 59)
-                    temp = leftRotate(stepBuffer.a, 5) + funH(stepBuffer.b, stepBuffer.c, stepBuffer.d) +
-                           stepBuffer.e + w[i] + 0x8F1BBCDC;
-                else
-                    temp = leftRotate(stepBuffer.a, 5) + funI(stepBuffer.b, stepBuffer.c, stepBuffer.d) +
-                           stepBuffer.e + w[i] + 0xCA62C1D6;
-                stepBuffer.e = stepBuffer.d;
-                stepBuffer.d = stepBuffer.c;
-                stepBuffer.c = leftRotate(stepBuffer.b, 30);
-                stepBuffer.b = stepBuffer.a;
-                stepBuffer.a = temp;
-            }
-            mdBuffer.a += stepBuffer.a;
-            mdBuffer.b += stepBuffer.b;
-            mdBuffer.c += stepBuffer.c;
-            mdBuffer.d += stepBuffer.d;
-            mdBuffer.e += stepBuffer.e;
+            mdBuffer.a += a;
+            mdBuffer.b += b;
+            mdBuffer.c += c;
+            mdBuffer.d += d;
         }
 
         if (mdBuffer.a == reinterpret_cast<uint32_t *>(digest)[0] &&
             mdBuffer.b == reinterpret_cast<uint32_t *>(digest)[1] &&
             mdBuffer.c == reinterpret_cast<uint32_t *>(digest)[2] &&
-            mdBuffer.d == reinterpret_cast<uint32_t *>(digest)[3] &&
-            mdBuffer.e == reinterpret_cast<uint32_t *>(digest)[4]) {
+            mdBuffer.d == reinterpret_cast<uint32_t *>(digest)[3]) {
             memcpy(words, &workingBuffer, lenght * sizeof(char));
 //            words[0] = '1';
 //            words[1] = '2';
 //            words[2] = '3';
 //            words[3] = '4';
-//            words[4] = '5';
             __syncthreads();
         }
     }
