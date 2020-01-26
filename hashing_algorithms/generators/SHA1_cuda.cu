@@ -51,6 +51,7 @@ namespace SHA1_cuda {
 
     __device__ void fillWorkingBuffer(const char *word, uint32_t *workingBuffer, unsigned int workingBufferLength,
                                       unsigned int wordLength) {
+
         unsigned int i = 0, j;
         uint32_t *word_ptr = (uint32_t *) word;
         for (i = 0; i < wordLength / 4; i++)

@@ -48,19 +48,30 @@ add_executable(main
 
 target_link_libraries(main OpenSSL::SSL)
 
-add_executable(cracker
+add_executable(MD5cudaCrackerStarter
         MD5cudaCrackerStarter.cu
         dummy.cpp
         hashing_algorithms/crackers/MD5_cuda_cracker.cu
         hashing_algorithms/crackers/include/MD5_cuda_cracker.cuh
-#         hashing_algorithms/MD5_cpu_cracker.cpp
-#         hashing_algorithms/include/MD5_cpu_cracker.h
-
      )
 
-target_compile_options(cracker PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:
+target_compile_options(MD5cudaCrackerStarter PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:
         --maxrregcount=32
         >)
+
+add_executable(SHA1cudaCrackerStarter
+        SHA1cudaCrackerStarter.cu
+        dummy.cpp
+        hashing_algorithms/crackers/include/SHA1_cuda_cracker.cuh
+        hashing_algorithms/crackers/SHA1_cuda_cracker.cu
+        )
+
+add_executable(SHA1cpuCrackerStarter
+        SHA1cpuCrackerStarter.cpp
+        dummy.cpp
+        hashing_algorithms/crackers/include/SHA1_cpu_cracker.h
+        hashing_algorithms/crackers/SHA1_cpu_cracker.cpp
+        )
 
 #clion cuda hack
 include_directories(/opt/cuda/include)
