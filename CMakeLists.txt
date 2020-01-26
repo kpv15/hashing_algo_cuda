@@ -55,6 +55,13 @@ add_executable(MD5cpuCrackerStarter
         hashing_algorithms/crackers/include/MD5_cpu_cracker.h
      )
 
+add_executable(MD5sslCrackerStarter
+        MD5sslCrackerStarter.cpp
+        dummy.cpp
+        )
+
+target_link_libraries(MD5sslCrackerStarter OpenSSL::SSL)
+
 add_executable(MD5cudaCrackerStarter
         MD5cudaCrackerStarter.cu
         dummy.cpp
