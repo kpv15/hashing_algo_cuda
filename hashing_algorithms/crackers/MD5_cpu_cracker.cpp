@@ -45,23 +45,15 @@ calculateHashSum(unsigned char *digest, char *words, int workingBufferLength, in
 
     unsigned char workingBuffer[MAX_WORKING_BUFFER_SIZE];
     //init working buffer
+    memset(workingBuffer, 0, workingBufferLength);
     workingBuffer[lenght] = 0b10000000;
-    memset(workingBuffer + lenght + 1, 0, workingBufferLength - lenght - 1 - 8);
     reinterpret_cast<unsigned long *>(workingBuffer)[workingBufferLength / 8 - 1] = 8 * lenght;
-
-    workingBuffer[0] = 'd';
-    workingBuffer[1] = 'u';
-
-    int combinations = 1;
-    for (int i = 0; i < lenght - 2; i++)
-        combinations *= 256;
 
     unsigned int numberOfChunks = workingBufferLength / 64;
 
-    for (long j = 0; j < combinations; j++) {
+    bool done;
 
-        memcpy(workingBuffer + 2, &j, (lenght - 2) * sizeof(unsigned char));
-
+    do {
         block mdBuffer = DEFAULT_DIGEST_BUFFER;
 
         for (unsigned long i = 0; i < numberOfChunks; i++) {
@@ -149,7 +141,19 @@ calculateHashSum(unsigned char *digest, char *words, int workingBufferLength, in
         if (mdBuffer.a == reinterpret_cast<uint32_t *>(digest)[0] &&
             mdBuffer.b == reinterpret_cast<uint32_t *>(digest)[1] &&
             mdBuffer.c == reinterpret_cast<uint32_t *>(digest)[2] &&
-            mdBuffer.d == reinterpret_cast<uint32_t *>(digest)[3])
+            mdBuffer.d == reinterpret_cast<uint32_t *>(digest)[3]) {
             memcpy(words, &workingBuffer, lenght);
-    }
+            break;
+        }
+        int i = 0;
+        while (++workingBuffer[i] == 0 && i < lenght)
+            i++;
+        done = true;
+        for (int i = 0; i < lenght; i++) {
+            if (workingBuffer[i] != 0) {
+                done = false;
+                break;
+            }
+        }
+    }while (!done);
 }

@@ -62,10 +62,7 @@ void calculateHashSum(unsigned char *digest_g, char *message, int workingBufferL
     uint32_t h = swap_bits(((uint32_t *) &tmp)[1]);
     memcpy(workingBuffer + workingBufferLength * 4 - 8, &h, sizeof(uint32_t));
     memcpy(workingBuffer + workingBufferLength * 4 - 4, &l, sizeof(uint32_t));
-
-    workingBuffer[0] = 'a';
-    workingBuffer[1] = 'l';
-
+    
     unsigned int numberOfChunks = workingBufferLength / 16;
 
     bool done;
@@ -121,11 +118,11 @@ void calculateHashSum(unsigned char *digest_g, char *message, int workingBufferL
             memcpy(message, &workingBuffer, lenght * sizeof(char));
             break;
         }
-        int i = 2;
+        int i = 0;
         while (++workingBuffer[i] == 0 && i < lenght)
             i++;
         done = true;
-        for (int i = 2; i < lenght; i++) {
+        for (int i = 0; i < lenght; i++) {
             if (workingBuffer[i] != 0){
                 done = false;
                 break;

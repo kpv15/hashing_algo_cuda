@@ -48,12 +48,19 @@ add_executable(main
 
 target_link_libraries(main OpenSSL::SSL)
 
+add_executable(MD5cpuCrackerStarter
+        MD5cpuCrackerStarter.cpp
+        dummy.cpp
+        hashing_algorithms/crackers/MD5_cpu_cracker.cpp
+        hashing_algorithms/crackers/include/MD5_cpu_cracker.h
+     )
+
 add_executable(MD5cudaCrackerStarter
         MD5cudaCrackerStarter.cu
         dummy.cpp
         hashing_algorithms/crackers/MD5_cuda_cracker.cu
         hashing_algorithms/crackers/include/MD5_cuda_cracker.cuh
-     )
+        )
 
 target_compile_options(MD5cudaCrackerStarter PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:
         --maxrregcount=32

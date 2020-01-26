@@ -6,7 +6,7 @@
 #include <cstring>
 #include <chrono>
 #include "cuda_clion_hack.hpp"
-#include "hashing_algorithms/crackers/include/MD5_cuda_cracker.cuh"
+#include "hashing_algorithms/crackers/include/MD5_cpu_cracker.h"
 
 unsigned int calculateWorkingBufferLength(unsigned int wordLength) {
     unsigned int toAdd = 64 - (wordLength + 8) % 64;
@@ -45,28 +45,13 @@ int main(int argc, char **argv) {
 int crack(int min_length, int max_length, unsigned char *digest) {
 
     min_length = min_length >= 2 ? min_length : 2;
-    cudaError_t errorCode;
     const char NOT_FOUND[] = "-";
 
     char *word = new char[max_length + 1];
-    char *word_gpu;
-
-    unsigned char *digest_gpu;
-    if ((errorCode = cudaMalloc((void **) &digest_gpu, DIGEST_LENGTH * sizeof(unsigned char))) != cudaSuccess) {
-        std::cout << "error during alloc memory for digest on GPU error code: " << cudaGetErrorName(errorCode)
-                  << std::endl;
-        return 1;
-    };
-
-    cudaMemcpy(digest_gpu, digest, sizeof(unsigned char) * DIGEST_LENGTH, cudaMemcpyHostToDevice);
 
     for (int length = min_length; length <= max_length; length++) {
-        if ((errorCode = cudaMalloc((void **) &word_gpu, length * sizeof(char))) != cudaSuccess) {
-            std::cout << "error during alloc memory for digest on GPU error code: " << cudaGetErrorName(errorCode)
-                      << std::endl;
-            return 1;
-        };
-        cudaMemcpy(word_gpu, NOT_FOUND, sizeof(char) * (strlen(NOT_FOUND) + 1), cudaMemcpyHostToDevice);
+
+        memcpy(word, NOT_FOUND, sizeof(char) * (strlen(NOT_FOUND) + 1));
 
         int workingBufferLength = calculateWorkingBufferLength(length);
 
@@ -75,26 +60,18 @@ int crack(int min_length, int max_length, unsigned char *digest) {
 
 //        auto startKernel = std::chrono::high_resolution_clock::now();
 
-        calculateHashSum << < 256, 256 >> > (digest_gpu, word_gpu, workingBufferLength, length);
+        calculateHashSum(digest, word, workingBufferLength, length);
 
         auto stopKernel = std::chrono::high_resolution_clock::now();
 
-        if ((errorCode = cudaDeviceSynchronize()) != cudaSuccess) {
-            std::cout << "error during Device Synchronize: " << cudaGetErrorName(errorCode)
-                      << std::endl;
-            return 1;
-        }
-        cudaMemcpy(word, word_gpu, sizeof(char) * length, cudaMemcpyDeviceToHost);
         word[length] = '\0';
 
         auto durationKernel = std::chrono::duration_cast<std::chrono::microseconds>(stopKernel - startKernel);
 
         std::cout << word << "\tin: " << durationKernel.count() << std::endl;
 
-        cudaFree(word_gpu);
     }
 
-    cudaFree(digest_gpu);
     delete[]word;
 
     return 0;
