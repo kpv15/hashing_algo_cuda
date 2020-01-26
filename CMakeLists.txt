@@ -87,6 +87,13 @@ add_executable(SHA1cpuCrackerStarter
         hashing_algorithms/crackers/SHA1_cpu_cracker.cpp
         )
 
+add_executable(SHA1sslCrackerStarter
+        SHA1sslCrackerStarter.cpp
+        dummy.cpp
+        )
+
+target_link_libraries(SHA1sslCrackerStarter OpenSSL::SSL)
+
 #clion cuda hack
 include_directories(/opt/cuda/include)
 include_directories(/opt/cuda/samples/common/inc)
