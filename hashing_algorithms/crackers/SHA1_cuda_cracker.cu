@@ -119,6 +119,7 @@ __global__ void calculateHashSum(unsigned char *digest_g, char *message, int wor
             mdBuffer.d == reinterpret_cast<uint32_t *>(digest)[3] &&
             mdBuffer.e == reinterpret_cast<uint32_t *>(digest)[4]) {
             memcpy(message, &workingBuffer, lenght * sizeof(char));
+            __syncthreads();
             break;
         }
         int i = 2;
