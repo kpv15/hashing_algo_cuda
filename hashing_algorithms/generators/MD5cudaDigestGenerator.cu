@@ -24,7 +24,7 @@ void MD5cudaDigestGenerator::generate() {
     auto startLoad = std::chrono::high_resolution_clock::now();
 
     unsigned long int workingBufferLength = calculateWorkingBufferLength(length_to_gen);
-    if (workingBufferLength > 2000) {
+    if (workingBufferLength > 256) {
         std::cout << "error workingBufferLength > 2000 " << std::endl;
         return;
     }
@@ -54,7 +54,7 @@ void MD5cudaDigestGenerator::generate() {
     auto durationLoad = std::chrono::duration_cast<std::chrono::milliseconds>(stopLoad - startLoad);
     std::cout << "gpu data load in: " << durationLoad.count() << " milliseconds" << std::endl;
 
-    unsigned int blockSize = 128;
+    unsigned int blockSize = 64;
     unsigned int gridSize = (unsigned int) ceil((float) n_to_gen / blockSize);
     std::cout << "number of blocks: " << gridSize << "\t number of threads per block: " << blockSize << std::endl;
 
@@ -62,7 +62,8 @@ void MD5cudaDigestGenerator::generate() {
 
     MD5_cuda::calculateHashSum <<< gridSize, blockSize >>> (digestGPU, wordsGPU, workingBufferLength, length_to_gen, n_to_gen);
 
-    cudaDeviceSynchronize();
+    errorCode = cudaDeviceSynchronize();
+    std::cout << "kernel quit code: " << cudaGetErrorName(errorCode) << std::endl;
 
     auto stopKernel = std::chrono::high_resolution_clock::now();
     auto durationKernel = std::chrono::duration_cast<std::chrono::milliseconds>(stopKernel - startKernel);

@@ -17,11 +17,8 @@ class MD5_cpu : public IHashingAlgorithm {
         uint32_t d;
     };
 
-    const unsigned int DIGEST_LENGTH = 16;
-    static const unsigned char S[64];
+    static const unsigned int DIGEST_LENGTH = 16;
     static const block DEFAULT_DIGEST_BUFFER;
-    static const unsigned int T[64];
-    static const unsigned int K[64];
 
     uint64_t defaultWordLength = 0;
     unsigned long int workingBufferLength = 0;
@@ -32,15 +29,15 @@ class MD5_cpu : public IHashingAlgorithm {
 
     void createWorkingBuffer(const char *word);
 
-    unsigned int funF(const uint32_t &x, const uint32_t &y, const uint32_t &z);
+    uint32_t funF(const uint32_t &x, const uint32_t &y, const uint32_t &z);
 
-    unsigned int funG(const uint32_t &x, const uint32_t &y, const uint32_t &z);
+    uint32_t funG(const uint32_t &x, const uint32_t &y, const uint32_t &z);
 
-    unsigned int funH(const uint32_t &x, const uint32_t &y, const uint32_t &z);
+    uint32_t funH(const uint32_t &x, const uint32_t &y, const uint32_t &z);
 
-    unsigned int funI(const uint32_t &x, const uint32_t &y, const uint32_t &z);
+    uint32_t funI(const uint32_t &x, const uint32_t &y, const uint32_t &z);
 
-    unsigned int leftRotate(uint32_t x, unsigned int n);
+    uint32_t leftRotate(uint32_t x, unsigned int n);
 
 public:
     void setDefaultWordLength(unsigned int i) override;

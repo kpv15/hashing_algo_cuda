@@ -30,7 +30,7 @@ void SHA1cudaDigestGenerator::generate() {
     auto startLoad = std::chrono::high_resolution_clock::now();
 
     unsigned long int workingBufferLength = calculateWorkingBufferLength(length_to_gen);
-    if (workingBufferLength > 200) {
+    if (workingBufferLength > 256/4) {
         std::cout << "error workingBufferLength > 200 " << std::endl;
         return;
     }
@@ -62,7 +62,7 @@ void SHA1cudaDigestGenerator::generate() {
     auto durationLoad = std::chrono::duration_cast<std::chrono::milliseconds>(stopLoad - startLoad);
     std::cout << "gpu data load in: " << durationLoad.count() << " milliseconds" << std::endl;
 
-    unsigned int blockSize = 128;
+    unsigned int blockSize = 256;
     unsigned int gridSize = (unsigned int) ceil((float) n_to_gen / blockSize);
     std::cout << "number of blocks: " << gridSize << "\t number of threads per block: " << blockSize << std::endl;
 

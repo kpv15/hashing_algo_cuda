@@ -77,9 +77,11 @@ int crack(int min_length, int max_length, unsigned char *digest) {
 
         calculateHashSum << < 256, 256 >> > (digest_gpu, word_gpu, workingBufferLength, length);
 
+        errorCode = cudaDeviceSynchronize();
+
         auto stopKernel = std::chrono::high_resolution_clock::now();
 
-        if ((errorCode = cudaDeviceSynchronize()) != cudaSuccess) {
+        if (errorCode  != cudaSuccess) {
             std::cout << "error during Device Synchronize: " << cudaGetErrorName(errorCode)
                       << std::endl;
             return 1;
@@ -89,7 +91,7 @@ int crack(int min_length, int max_length, unsigned char *digest) {
 
         auto durationKernel = std::chrono::duration_cast<std::chrono::microseconds>(stopKernel - startKernel);
 
-        std::cout << word << "\tin: " << durationKernel.count() << std::endl;
+        std::cout << word << "\tin: " << durationKernel.count() << " microseconds" << std::endl;
 
         cudaFree(word_gpu);
     }

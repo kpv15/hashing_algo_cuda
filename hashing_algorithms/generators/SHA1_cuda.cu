@@ -83,7 +83,7 @@ namespace SHA1_cuda {
 
         if (threadId < n) {
 
-            uint32_t workingBuffer[200];
+            uint32_t workingBuffer[256/4];
 
             fillWorkingBuffer(word + wordBufferLength * threadId, workingBuffer, workingBufferLength, wordLength);
 
@@ -102,7 +102,6 @@ namespace SHA1_cuda {
 
                 stepBuffer = mdBuffer;
 
-#pragma unroll
                 for (int i = 0; i <= 79; i++) {
                     if (i <= 19)
                         temp = leftRotate(stepBuffer.a, 5) + funF(stepBuffer.b, stepBuffer.c, stepBuffer.d) +

@@ -22,7 +22,7 @@ class SHA1_cpu : public IHashingAlgorithm {
     const unsigned int DIGEST_LENGTH = 20;
     static const block DEFAULT_DIGEST_BUFFER;
 
-    unsigned long int defaultWordLength = 0;
+    uint64_t defaultWordLength = 0;
     unsigned long int workingBufferLength = 0;
     unsigned int numberOfChunks = 0;
     unsigned char *workingBuffer = nullptr;
@@ -37,11 +37,9 @@ class SHA1_cpu : public IHashingAlgorithm {
 
     uint32_t funI(const uint32_t b, const uint32_t c, const uint32_t d);
 
-
-    uint32_t leftRotate(uint32_t x, uint32_t n);
+    uint32_t leftRotate(uint32_t x, unsigned int n);
 
     void createWorkingBuffer(const char *word);
-
 
 public:
 

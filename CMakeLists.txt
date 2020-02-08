@@ -69,9 +69,9 @@ add_executable(MD5cudaCrackerStarter
         hashing_algorithms/crackers/include/MD5_cuda_cracker.cuh
         )
 
-target_compile_options(MD5cudaCrackerStarter PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:
-        --maxrregcount=32
-        >)
+#target_compile_options(MD5cudaCrackerStarter PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:
+#        --maxrregcount=32
+#        >)
 
 add_executable(SHA1cudaCrackerStarter
         SHA1cudaCrackerStarter.cu

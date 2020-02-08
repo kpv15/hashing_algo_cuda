@@ -68,7 +68,7 @@ int crack(int min_length, int max_length, unsigned char *digest) {
 
         auto durationKernel = std::chrono::duration_cast<std::chrono::microseconds>(stopKernel - startKernel);
 
-        std::cout << word << "\tin: " << durationKernel.count() << std::endl;
+        std::cout << word << "\tin: " << durationKernel.count() <<" microseconds"<< std::endl;
 
     }
 

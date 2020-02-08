@@ -11,3 +11,12 @@ unsigned int MD5cpuDigestGenerator::getDigestLength() {
 std::string MD5cpuDigestGenerator::getAlgorithmName() {
     return "md5_cpu";
 }
+
+void MD5cpuDigestGenerator::generate() {
+    md5Cpu.setDefaultWordLength(length_to_gen);
+    initDigest();
+    for (unsigned int i = 0; i < n_to_gen; i++)
+        md5Cpu.calculateHashSum(&digest[i], words[i]);
+    n = n_to_gen;
+    length = length_to_gen;
+}

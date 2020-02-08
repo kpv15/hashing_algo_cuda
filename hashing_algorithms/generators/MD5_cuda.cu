@@ -54,9 +54,11 @@ namespace MD5_cuda {
         if (threadId < n) {
 
             //init working buffer copy data from global to local memory
-            unsigned char workingBuffer[1000];
-            //word to buffer
-            //        memcpy(workingBuffer, buff_words + threadIdx.x * wordLength, wordLength);
+            unsigned char workingBuffer[256];
+//            __shared__ unsigned char tmp[256 * 128];
+//            unsigned char* workingBuffer = tmp + 256*threadIdx.x;
+//            word to buffer
+//           memcpy(workingBuffer, buff_words + threadIdx.x * wordLength, wordLength);
             memcpy(workingBuffer, word + threadId * wordLength, wordLength);
             //padding
             workingBuffer[wordLength] = 0b10000000;

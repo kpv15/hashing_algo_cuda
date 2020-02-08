@@ -12,14 +12,7 @@
 class SHA1cpuDigestGenerator : public IGenerator{
     SHA1_cpu sha1cpu;
 public:
-    void generate() override {
-        sha1cpu.setDefaultWordLength(length_to_gen);
-        initDigest();
-        for (unsigned int i = 0; i < n_to_gen; i++)
-            sha1cpu.calculateHashSum(&digest[i], words[i]);
-        n = n_to_gen;
-        length = length_to_gen;
-    }
+    void generate() override;
     unsigned int getDigestLength() override;
 
     std::string getAlgorithmName() override;
