@@ -74,8 +74,14 @@ int crack(int min_length, int max_length, unsigned char *digest) {
         auto startKernel = std::chrono::high_resolution_clock::now();
 
 //        auto startKernel = std::chrono::high_resolution_clock::now();
+        unsigned long threadNum = 256;
+        unsigned long blockNum = 1;
+        for (int i = 0; i < length && i < 4; ++i) {
+            blockNum*=256;
+        }
+        blockNum/=threadNum;
 
-        calculateHashSum << < 256, 256 >> > (digest_gpu, word_gpu, workingBufferLength, length);
+        calculateHashSum << < blockNum, threadNum  >> > (digest_gpu, word_gpu, workingBufferLength, length);
 
         errorCode = cudaDeviceSynchronize();
 
