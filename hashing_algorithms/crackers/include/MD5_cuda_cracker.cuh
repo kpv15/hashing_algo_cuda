@@ -9,7 +9,7 @@
 #define DIGEST_LENGTH 16
 
 __global__ void
-calculateHashSum(unsigned char *digest, char *message, int workingBufferLength, int lenght);
+calculateHashSum(unsigned char *digest, char *message, int workingBufferLength, int lenght, volatile bool *kernel_end);
 
 
 #endif //INYNIERKA_MD5CUDACRACKER_CUH

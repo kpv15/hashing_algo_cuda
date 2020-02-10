@@ -28,6 +28,8 @@ public:
     virtual unsigned int getDigestLength() = 0;
 
     virtual std::string getAlgorithmName() = 0;
+
+    virtual bool needOneDimArray() { return false;}
 };
 
 #endif //INYNIERKA_IGENERATOR_H

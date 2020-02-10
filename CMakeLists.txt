@@ -97,3 +97,8 @@ target_link_libraries(SHA1sslCrackerStarter OpenSSL::SSL)
 #clion cuda hack
 include_directories(/opt/cuda/include)
 include_directories(/opt/cuda/samples/common/inc)
+
+
+add_executable(test
+        test.cpp
+        )

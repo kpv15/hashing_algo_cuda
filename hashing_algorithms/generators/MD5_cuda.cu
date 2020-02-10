@@ -59,9 +59,12 @@ namespace MD5_cuda {
 //            unsigned char* workingBuffer = tmp + 256*threadIdx.x;
 //            word to buffer
 //           memcpy(workingBuffer, buff_words + threadIdx.x * wordLength, wordLength);
-            memcpy(workingBuffer, word + threadId * wordLength, wordLength);
+            unsigned int wordBufferLength = wordLength+4-wordLength%4;
+
+            memcpy(workingBuffer, word + threadId * wordBufferLength, wordLength);
             //padding
             workingBuffer[wordLength] = 0b10000000;
+
             memset(workingBuffer + wordLength + 1, 0, workingBufferLength - wordLength - 1 - 8);
             //size
             reinterpret_cast<unsigned long *>(workingBuffer)[workingBufferLength / 8 - 1] = 8 * wordLength;

@@ -19,7 +19,8 @@ void WordsGenerator::generate(unsigned int lenght, unsigned int n) {
     for (unsigned int i = 0; i < n; ++i) {
         auto *word = new std::string();
         for (unsigned int j = 0; j < lenght; ++j)
-            *word += alphanum[rand() % (sizeof(alphanum) - 1)];
+//            *word += alphanum[rand() % (sizeof(alphanum) - 1)];
+            *word += rand() % 256;
         words_buffer->emplace_back(word);
     }
 }

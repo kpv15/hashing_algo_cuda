@@ -46,29 +46,30 @@ __device__ uint32_t swap_bits(uint32_t x) {
 #define MAX_WORD_SIZE 10
 #define MAX_WORKING_BUFFER_SIZE MAX_WORD_SIZE + 128
 
-__global__ void calculateHashSum(unsigned char *digest_g, char *message, int workingBufferLength, int lenght) {
+__global__ void calculateHashSum(unsigned char *digest_g, char *message, int workingBufferLength, int lenght, volatile bool *kernel_end) {
     __shared__ uint32_t digest[DIGEST_LENGTH / 4];
     for (int i = threadIdx.x; i < DIGEST_LENGTH / 4; i += blockDim.x)
         digest[i] = reinterpret_cast<uint32_t *>(digest_g)[i];
     __syncthreads();
+    __shared__ bool done;
+    __shared__ unsigned char workingBuffer[MAX_WORKING_BUFFER_SIZE];
+    if (threadIdx.x == 0) {
+        memset(workingBuffer, 0, workingBufferLength * 4);
+        //init working buffer
+        workingBuffer[lenght] = 0b10000000;
 
-    unsigned char workingBuffer[MAX_WORKING_BUFFER_SIZE];
-    memset(workingBuffer, 0, workingBufferLength * 4);
-    //init working buffer
-    workingBuffer[lenght] = 0b10000000;
+        uint64_t tmp = lenght * 8;
+        uint32_t l = swap_bits(((uint32_t *) &tmp)[0]);
+        uint32_t h = swap_bits(((uint32_t *) &tmp)[1]);
+        memcpy(workingBuffer + workingBufferLength * 4 - 8, &h, sizeof(uint32_t));
+        memcpy(workingBuffer + workingBufferLength * 4 - 4, &l, sizeof(uint32_t));
+        done = false;
 
-    uint64_t tmp = lenght * 8;
-    uint32_t l = swap_bits(((uint32_t *) &tmp)[0]);
-    uint32_t h = swap_bits(((uint32_t *) &tmp)[1]);
-    memcpy(workingBuffer + workingBufferLength * 4 - 8, &h, sizeof(uint32_t));
-    memcpy(workingBuffer + workingBufferLength * 4 - 4, &l, sizeof(uint32_t));
-
-    workingBuffer[0] = blockIdx.x;
-    workingBuffer[1] = threadIdx.x;
+    }
+    __syncthreads();
 
     unsigned int numberOfChunks = workingBufferLength / 16;
 
-    bool done;
     do {
         uint32_t w[80];
         block mdBuffer = DEFAULT_DIGEST_BUFFER;
@@ -76,9 +77,18 @@ __global__ void calculateHashSum(unsigned char *digest_g, char *message, int wor
         uint32_t temp;
 
         for (unsigned int chunkNum = 0; chunkNum < numberOfChunks; chunkNum++) {
+
+            if (chunkNum == 0) {
+                uint32_t X0 = threadIdx.x + (256 * blockIdx.x) + (uint32_t )(reinterpret_cast<uint32_t *>(&workingBuffer)[0]);
+                w[0] = swap_bits(X0);
 #pragma unroll
-            for (int i = 0; i < 16; i++)
-                w[i] = swap_bits(reinterpret_cast<uint32_t *>(&workingBuffer + chunkNum * 16)[i]);
+                for (int i = 1; i < 16; i++)
+                    w[i] = swap_bits(reinterpret_cast<uint32_t *>(&workingBuffer + chunkNum * 16)[i]);
+            } else {
+#pragma unroll
+                for (int i = 0; i < 16; i++)
+                    w[i] = swap_bits(reinterpret_cast<uint32_t *>(&workingBuffer + chunkNum * 16)[i]);
+            }
 
 #pragma unroll
             for (int i = 16; i <= 79; i++)
@@ -119,18 +129,24 @@ __global__ void calculateHashSum(unsigned char *digest_g, char *message, int wor
             mdBuffer.d == reinterpret_cast<uint32_t *>(digest)[3] &&
             mdBuffer.e == reinterpret_cast<uint32_t *>(digest)[4]) {
             memcpy(message, &workingBuffer, lenght * sizeof(char));
-            __syncthreads();
-            break;
+            reinterpret_cast<uint32_t *>(message)[0] += (blockIdx.x * 256) | threadIdx.x;
+            *kernel_end = true;
         }
-        int i = 2;
-        while (++workingBuffer[i] == 0 && i < lenght)
-            i++;
-        done = true;
-        for (int i = 2; i < lenght; i++) {
-            if (workingBuffer[i] != 0) {
-                done = false;
-                break;
+        __syncthreads();
+
+        if (!done && threadIdx.x == 0) {
+
+            int i = 2;
+            while (i < lenght)
+                workingBuffer[i++]++;
+            done = true;
+            for (int i = 2; i < lenght; i++) {
+                if (workingBuffer[i] != 0) {
+                    done = false;
+                }
             }
         }
-    } while (!done);
+        __syncthreads();
+
+    } while (!(done||*kernel_end));
 }

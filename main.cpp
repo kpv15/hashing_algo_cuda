@@ -124,18 +124,30 @@ void generateDigests(IGenerator *generator) {
     std::cout << "####################" << std::endl;
     std::cout << "start loading words from file: " << DEFAULT_WORD_LIST_OUTPUT_FILE_NAME << std::endl;
 
+
     char *buffer = new char[length + 1];
     inputFile.getline(buffer, length + 1);
     char **words = new char *[n];
 
-    for (unsigned int i = 0; i < n; i++) {
-        words[i] = new char[length];
-        inputFile.getline(buffer, length + 1);
-        memcpy(words[i], buffer, length);
+    bool oneDim = generator->needOneDimArray();
+    if (!oneDim) {
+        for (unsigned int i = 0; i < n; i++) {
+            words[i] = new char[length];
+            inputFile.getline(buffer, length + 1);
+            memcpy(words[i], buffer, length);
+        }
+    }else{
+        unsigned int wordBufferLength = length+4-length%4;
+        words[0] = new char[wordBufferLength*n];
+        for (unsigned int i = 0; i < n; i++) {
+            inputFile.getline(buffer, length + 1);
+            words[i+1] = words[i]+wordBufferLength;
+            memcpy(words[i], buffer, length);
+        }
     }
+
     delete[] buffer;
     inputFile.close();
-
     std::cout << "loading words complete " << n << " words was loaded, input file closed" << std::endl;
     std::cout << "initialize generator" << std::endl;
     generator->setWords(words, n, length);
@@ -161,21 +173,27 @@ void generateDigests(IGenerator *generator) {
     outputDigest << n << "\t" << length << std::endl;
 
     if (digits != nullptr) {
-//        for (unsigned long int i = 0; i < n; i++) {
-//            char *word = words[i];
-////            std::cout <<  std::string(word, word + length) << "\t" << hexParser(digits[i]) << std::endl;
-////            std::cout << hexParser(digits[i]) << std::endl;
-//            outputDigest << hexParser(digits[i]) << std::endl;
-////            outputDigestHex.write((char *) (digits[i]), digestLength);
-//        }
+        for (unsigned long int i = 0; i < n; i++) {
+            char *word = words[i];
+//            std::cout <<  std::string(word, word + length) << "\t" << hexParser(digits[i]) << std::endl;
+//            std::cout << hexParser(digits[i]) << std::endl;
+            outputDigest << hexParser(digits[i]) << std::endl;
+//            outputDigestHex.write((char *) (digits[i]), digestLength);
+        }
 
         std::cout << "output file closed, cleaning memory" << std::endl;
-        for (unsigned long int i = 0; i < n; i++) {
-            delete[] words[i];
-            delete[] digits[i];
+        if (!oneDim) {
+            for (unsigned long int i = 0; i < n; i++) {
+                delete[] words[i];
+                delete[] digits[i];
+            }
+        } else {
+            delete[] words[0];
+            delete[] digits[0];
         }
         delete[] words;
         delete[] digits;
+
 
         outputDigest.close();
 //        outputDigestHex.close();

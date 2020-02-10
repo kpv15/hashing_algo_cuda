@@ -57,8 +57,18 @@ int crack(int min_length, int max_length, unsigned char *digest) {
                   << std::endl;
         return 1;
     };
-
     cudaMemcpy(digest_gpu, digest, sizeof(unsigned char) * DIGEST_LENGTH, cudaMemcpyHostToDevice);
+
+
+    bool *kernel_end_gpu;
+    if ((errorCode = cudaMalloc((void **) &kernel_end_gpu, sizeof(bool))) != cudaSuccess) {
+        std::cout << "error during alloc memory for kernel end flag on GPU error code: " << cudaGetErrorName(errorCode)
+                  << std::endl;
+        return 1;
+    };
+    bool kerel_end = false;
+    cudaMemcpy(kernel_end_gpu, &kerel_end, sizeof(bool), cudaMemcpyHostToDevice);
+
 
     for (int length = min_length; length <= max_length; length++) {
         if ((errorCode = cudaMalloc((void **) &word_gpu, length * sizeof(char))) != cudaSuccess) {
@@ -66,7 +76,6 @@ int crack(int min_length, int max_length, unsigned char *digest) {
                       << std::endl;
             return 1;
         };
-        cudaMemcpy(word_gpu, NOT_FOUND, sizeof(char) * (strlen(NOT_FOUND) + 1), cudaMemcpyHostToDevice);
 
         int workingBufferLength = calculateWorkingBufferLength(length);
 
@@ -74,20 +83,21 @@ int crack(int min_length, int max_length, unsigned char *digest) {
         auto startKernel = std::chrono::high_resolution_clock::now();
 
 //        auto startKernel = std::chrono::high_resolution_clock::now();
-        unsigned long threadNum = 256;
+        unsigned long threadNum = 128;
         unsigned long blockNum = 1;
         for (int i = 0; i < length && i < 4; ++i) {
-            blockNum*=256;
+            blockNum *= 256;
         }
-        blockNum/=threadNum;
+        blockNum /= threadNum;
 
-        calculateHashSum << < blockNum, threadNum  >> > (digest_gpu, word_gpu, workingBufferLength, length);
+        calculateHashSum << < blockNum, threadNum >> >
+                                        (digest_gpu, word_gpu, workingBufferLength, length, kernel_end_gpu);
 
         errorCode = cudaDeviceSynchronize();
 
         auto stopKernel = std::chrono::high_resolution_clock::now();
 
-        if (errorCode  != cudaSuccess) {
+        if (errorCode != cudaSuccess) {
             std::cout << "error during Device Synchronize: " << cudaGetErrorName(errorCode)
                       << std::endl;
             return 1;
@@ -97,7 +107,13 @@ int crack(int min_length, int max_length, unsigned char *digest) {
 
         auto durationKernel = std::chrono::duration_cast<std::chrono::microseconds>(stopKernel - startKernel);
 
-        std::cout << word << "\tin: " << durationKernel.count() << " microseconds" << std::endl;
+        cudaMemcpy(&kerel_end, kernel_end_gpu, sizeof(bool), cudaMemcpyDeviceToHost);
+
+        if(kerel_end)
+            std::cout << word;
+        else
+            std::cout <<NOT_FOUND;
+        std::cout << "\tin: " << durationKernel.count() << " microseconds" << std::endl;
 
         cudaFree(word_gpu);
     }

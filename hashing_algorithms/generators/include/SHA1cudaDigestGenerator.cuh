@@ -18,6 +18,8 @@ public:
     unsigned int getDigestLength() override;
 
     std::string getAlgorithmName() override;
+
+    bool needOneDimArray() override;
 };
 
 
