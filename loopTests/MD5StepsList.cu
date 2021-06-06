@@ -1,7 +1,6 @@
 #include <cstring>
 #include <cstdint>
-#include "include/MD5_cpu_cracker.h"
-#include "../../cuda_clion_hack.hpp"
+#include "include/MD5KernelHeader.cuh"
 
 struct block {
     uint32_t a;
@@ -17,54 +16,62 @@ __constant__  const block DEFAULT_DIGEST_BUFFER = {
         0x10325476
 };
 
-unsigned int funF(const unsigned int x, const unsigned int y, const unsigned int z) {
+__device__ unsigned int funF(const uint32_t x, const uint32_t y, const uint32_t z) {
     return (x & y) | ((~x) & z);
 }
 
-unsigned int funG(const unsigned int x, const unsigned int y, const unsigned int z) {
+__device__ unsigned int funG(const uint32_t x, const uint32_t y, const uint32_t z) {
     return (x & z) | (y & (~z));
 }
 
-unsigned int funH(const unsigned int x, const unsigned int y, const unsigned int z) {
+__device__ unsigned int funH(const uint32_t x, const uint32_t y, const uint32_t z) {
     return x ^ y ^ z;
 }
 
-unsigned int funI(const unsigned int x, const unsigned int y, const unsigned int z) {
+__device__ unsigned int funI(const uint32_t x, const uint32_t y, const uint32_t z) {
     return y ^ (x | (~z));
 }
 
-unsigned int leftRotate(unsigned int x, unsigned int n) {
+__device__ unsigned int leftRotate(uint32_t x, unsigned int n) {
     return (x << n) | (x >> (32 - n));
 }
 
 #define MAX_WORD_SIZE 10
 #define MAX_WORKING_BUFFER_SIZE MAX_WORD_SIZE + 128
 
-void
-calculateHashSum(unsigned char *digest, char *words, int workingBufferLength, int lenght) {
+__global__ void
+calculateHashSum(unsigned char *digest, char *words, int workingBufferLength, int lenght, volatile bool *kernel_end) {
 
-    unsigned char workingBuffer[MAX_WORKING_BUFFER_SIZE];
+    __shared__ bool done;
+    __shared__ uint32_t workingBuffer[MAX_WORKING_BUFFER_SIZE / 4];
     //init working buffer
-    memset(workingBuffer, 0, workingBufferLength);
-    workingBuffer[lenght] = 0b10000000;
-    reinterpret_cast<unsigned long *>(workingBuffer)[workingBufferLength / 8 - 1] = 8 * lenght;
+    if (threadIdx.x == 0) {
+        memset(workingBuffer, 0, workingBufferLength);
+        reinterpret_cast<uint8_t *>(workingBuffer)[lenght] = 0b10000000;
+        unsigned long tmp = 8 * lenght;
+        memcpy(workingBuffer + workingBufferLength / 4 - 2, &tmp, sizeof(uint64_t));
+        done = false;
+    }
+    __syncthreads();
 
     unsigned int numberOfChunks = workingBufferLength / 64;
-
-    bool done;
-
     do {
         block mdBuffer = DEFAULT_DIGEST_BUFFER;
 
         for (unsigned long i = 0; i < numberOfChunks; i++) {
-//            memcpy(X, workingBuffer + i * 16 * sizeof(unsigned int), 16 * sizeof(unsigned int));
-            unsigned int *X = reinterpret_cast<unsigned int *>(workingBuffer + i * 16 * sizeof(unsigned int));
+            unsigned int *X = workingBuffer + i * 16;
             uint32_t a = mdBuffer.a;
             uint32_t b = mdBuffer.b;
             uint32_t c = mdBuffer.c;
             uint32_t d = mdBuffer.d;
 
-            a = b + leftRotate((a + funF(b, c, d) + X[0] + 0xd76aa478), 7);
+            uint32_t X0;
+            if (i > 0) {
+                X0 = X[0];
+            } else {
+                X0 = workingBuffer[0] | (blockIdx.x * 256) | threadIdx.x;
+            }
+            a = b + leftRotate((a + funF(b, c, d) + X0 + 0xd76aa478), 7);
             d = a + leftRotate((d + funF(a, b, c) + X[1] + 0xe8c7b756), 12);
             c = d + leftRotate((c + funF(d, a, b) + X[2] + 0x242070db), 17);
             b = c + leftRotate((b + funF(c, d, a) + X[3] + 0xc1bdceee), 22);
@@ -84,7 +91,7 @@ calculateHashSum(unsigned char *digest, char *words, int workingBufferLength, in
             a = b + leftRotate((a + funG(b, c, d) + X[1] + 0xf61e2562), 5);
             d = a + leftRotate((d + funG(a, b, c) + X[6] + 0xc040b340), 9);
             c = d + leftRotate((c + funG(d, a, b) + X[11] + 0x265e5a51), 14);
-            b = c + leftRotate((b + funG(c, d, a) + X[0] + 0xe9b6c7aa), 20);
+            b = c + leftRotate((b + funG(c, d, a) + X0 + 0xe9b6c7aa), 20);
             a = b + leftRotate((a + funG(b, c, d) + X[5] + 0xd62f105d), 5);
             d = a + leftRotate((d + funG(a, b, c) + X[10] + 0x02441453), 9);
             c = d + leftRotate((c + funG(d, a, b) + X[15] + 0xd8a1e681), 14);
@@ -107,7 +114,7 @@ calculateHashSum(unsigned char *digest, char *words, int workingBufferLength, in
             c = d + leftRotate((c + funH(d, a, b) + X[7] + 0xf6bb4b60), 16);
             b = c + leftRotate((b + funH(c, d, a) + X[10] + 0xbebfbc70), 23);
             a = b + leftRotate((a + funH(b, c, d) + X[13] + 0x289b7ec6), 4);
-            d = a + leftRotate((d + funH(a, b, c) + X[0] + 0xeaa127fa), 11);
+            d = a + leftRotate((d + funH(a, b, c) + X0 + 0xeaa127fa), 11);
             c = d + leftRotate((c + funH(d, a, b) + X[3] + 0xd4ef3085), 16);
             b = c + leftRotate((b + funH(c, d, a) + X[6] + 0x04881d05), 23);
             a = b + leftRotate((a + funH(b, c, d) + X[9] + 0xd9d4d039), 4);
@@ -115,7 +122,7 @@ calculateHashSum(unsigned char *digest, char *words, int workingBufferLength, in
             c = d + leftRotate((c + funH(d, a, b) + X[15] + 0x1fa27cf8), 16);
             b = c + leftRotate((b + funH(c, d, a) + X[2] + 0xc4ac5665), 23);
 
-            a = b + leftRotate((a + funI(b, c, d) + X[0] + 0xf4292244), 6);
+            a = b + leftRotate((a + funI(b, c, d) + X0 + 0xf4292244), 6);
             d = a + leftRotate((d + funI(a, b, c) + X[7] + 0x432aff97), 10);
             c = d + leftRotate((c + funI(d, a, b) + X[14] + 0xab9423a7), 15);
             b = c + leftRotate((b + funI(c, d, a) + X[5] + 0xfc93a039), 21);
@@ -137,23 +144,34 @@ calculateHashSum(unsigned char *digest, char *words, int workingBufferLength, in
             mdBuffer.c += c;
             mdBuffer.d += d;
         }
-
         if (mdBuffer.a == reinterpret_cast<uint32_t *>(digest)[0] &&
             mdBuffer.b == reinterpret_cast<uint32_t *>(digest)[1] &&
             mdBuffer.c == reinterpret_cast<uint32_t *>(digest)[2] &&
             mdBuffer.d == reinterpret_cast<uint32_t *>(digest)[3]) {
-            memcpy(words, &workingBuffer, lenght);
-            break;
+
+            memcpy(words, workingBuffer, lenght * sizeof(char));
+            reinterpret_cast<uint32_t *>(words)[0] += (blockIdx.x * 256) | threadIdx.x;
+            *kernel_end = true;
         }
-        int i = 0;
-        while (++workingBuffer[i] == 0 && i < lenght)
-            i++;
-        done = true;
-        for (int i = 0; i < lenght; i++) {
-            if (workingBuffer[i] != 0) {
-                done = false;
-                break;
+        __syncthreads();
+
+        if (threadIdx.x == 0) {
+            unsigned char *tmp = reinterpret_cast<unsigned char *>(workingBuffer);
+            if (threadIdx.x == 0) {
+                int i = 4;
+                do {
+                    tmp[i++]++;
+                } while (tmp[i] == 0 && i < lenght);
+                done = true;
+                for (int i = 4; i < lenght; i++) {
+                    if (tmp[i] != 0) {
+                        done = false;
+                    }
+                }
             }
         }
-    }while (!done);
+        __syncthreads();
+
+    } while (!(done || *kernel_end));
+
 }
