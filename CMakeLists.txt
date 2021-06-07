@@ -26,6 +26,30 @@ add_executable(MD5Loop
         loopTests/MD5Loop.cu
         )
 
+#add_executable(MD5Iteration
+#        kernelRun/iteration/MD5CrackerStarter.cu
+#        kernelRun/iteration/MD5Kernel.cu
+#        kernelRun/iteration/MD5KernelHeader.cuh
+#        cudaUtils.cuh)
+#
+#add_executable(MD5Serial
+#        kernelRun/serial/MD5CrackerStarter.cu
+#        kernelRun/serial/MD5Kernel.cu
+#        kernelRun/serial/MD5KernelHeader.cuh
+#        cudaUtils.cuh)
+
+add_executable(MD5Shared
+        sharedMemory/MD5CrackerStarter.cu
+        sharedMemory/MD5KernelHeader.cuh
+        sharedMemory/MD5KernelShared.cu
+        cudaUtils.cuh)
+
+add_executable(MD5Private
+        sharedMemory/MD5CrackerStarter.cu
+        sharedMemory/MD5KernelHeader.cuh
+        sharedMemory/MD5KernelPrivate.cu
+        cudaUtils.cuh)
+
 if (CMAKE_COMPILER_IS_GNUCC)
     target_compile_options(disarium PRIVATE "-Wall -Wextra")
 endif ()
