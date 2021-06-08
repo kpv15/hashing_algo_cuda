@@ -50,6 +50,22 @@ add_executable(MD5Private
         sharedMemory/MD5KernelPrivate.cu
         cudaUtils.cuh)
 
+add_executable(MD5NonConst
+        constMemory/nonConst/MD5CrackerStarter.cu
+        constMemory/nonConst/MD5KernelHeader.cuh
+        constMemory/nonConst/MD5Kernel.cu
+        cudaUtils.cuh)
+
+add_executable(MD5Const
+        constMemory/const/MD5CrackerStarter.cu
+        constMemory/const/MD5KernelHeader.cuh
+        constMemory/const/MD5Kernel.cu
+        cudaUtils.cuh)
+set_target_properties(
+        MD5Const
+        PROPERTIES
+        CUDA_SEPARABLE_COMPILATION ON)
+
 if (CMAKE_COMPILER_IS_GNUCC)
     target_compile_options(disarium PRIVATE "-Wall -Wextra")
 endif ()
