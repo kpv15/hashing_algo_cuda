@@ -61,8 +61,20 @@ add_executable(MD5Const
         constMemory/const/MD5KernelHeader.cuh
         constMemory/const/MD5Kernel.cu
         cudaUtils.cuh)
+
 set_target_properties(
         MD5Const
+        PROPERTIES
+        CUDA_SEPARABLE_COMPILATION ON)
+
+add_executable(MD5ThreadsCountTest
+        threadsCount/MD5CrackerStarter.cu
+        threadsCount/MD5KernelHeader.cuh
+        threadsCount/MD5Kernel.cu
+        cudaUtils.cuh)
+
+set_target_properties(
+        MD5ThreadsCountTest
         PROPERTIES
         CUDA_SEPARABLE_COMPILATION ON)
 

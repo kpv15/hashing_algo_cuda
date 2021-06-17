@@ -1,6 +1,6 @@
 #include <cstring>
 #include <cstdint>
-#include "include/MD5KernelHeader.cuh"
+#include "MD5KernelHeader.cuh"
 
 struct block {
     uint32_t a;
@@ -8,6 +8,10 @@ struct block {
     uint32_t c;
     uint32_t d;
 };
+
+__constant__ unsigned char DIGEST[DIGEST_LENGTH];
+__constant__ int WORKING_BUFFER_LENGTH;
+__constant__ int LENGTH;
 
 __constant__  const block DEFAULT_DIGEST_BUFFER = {
         0x67452301,
@@ -73,21 +77,21 @@ __device__ unsigned int leftRotate(uint32_t x, unsigned int n) {
 #define MAX_WORKING_BUFFER_SIZE MAX_WORD_SIZE + 128
 
 __global__ void
-calculateHashSum(unsigned char *digest, char *words, int workingBufferLength, int lenght, volatile bool *kernel_end) {
+calculateHashSum(char *word, volatile bool *kernel_end) {
 
     __shared__ bool done;
     __shared__ uint32_t workingBuffer[MAX_WORKING_BUFFER_SIZE / 4];
     //init working buffer
     if (threadIdx.x == 0) {
-        memset(workingBuffer, 0, workingBufferLength);
-        reinterpret_cast<uint8_t *>(workingBuffer)[lenght] = 0b10000000;
-        unsigned long tmp = 8 * lenght;
-        memcpy(workingBuffer + workingBufferLength / 4 - 2, &tmp, sizeof(uint64_t));
+        memset(workingBuffer, 0, WORKING_BUFFER_LENGTH);
+        reinterpret_cast<uint8_t *>(workingBuffer)[LENGTH] = 0b10000000;
+        unsigned long tmp = 8 * LENGTH;
+        memcpy(workingBuffer + WORKING_BUFFER_LENGTH / 4 - 2, &tmp, sizeof(uint64_t));
         done = false;
     }
     __syncthreads();
 
-    unsigned int numberOfChunks = workingBufferLength / 64;
+    unsigned int numberOfChunks = WORKING_BUFFER_LENGTH / 64;
     do {
         block mdBuffer = DEFAULT_DIGEST_BUFFER;
 
@@ -103,37 +107,37 @@ calculateHashSum(unsigned char *digest, char *words, int workingBufferLength, in
             uint32_t *tmp;
 
 #pragma unroll
-for (unsigned int step = 0; step < 64; step++) {
-    unsigned int xStep = K[step] != 0 ? X[K[step]] : workingBuffer[0] | (blockIdx.x * 256) | threadIdx.x;
-    if (step < 16) {
-        *a = *b + leftRotate((*a + funF(*b, *c, *d) + xStep + T[step]), S[step]);
-    } else if (step < 32) {
-        *a = *b + leftRotate((*a + funG(*b, *c, *d) + xStep + T[step]), S[step]);
-    } else if (step < 48) {
-        *a = *b + leftRotate((*a + funH(*b, *c, *d) + xStep + T[step]), S[step]);
-    } else {
-        *a = *b + leftRotate((*a + funI(*b, *c, *d) + xStep + T[step]), S[step]);
-    }
+            for (unsigned int step = 0; step < 64; step++) {
+                unsigned int xStep = K[step] != 0 ? X[K[step]] : workingBuffer[0] | (blockIdx.x * blockDim.x) | threadIdx.x;
+                if (step < 16) {
+                    *a = *b + leftRotate((*a + funF(*b, *c, *d) + xStep + T[step]), S[step]);
+                } else if (step < 32) {
+                    *a = *b + leftRotate((*a + funG(*b, *c, *d) + xStep + T[step]), S[step]);
+                } else if (step < 48) {
+                    *a = *b + leftRotate((*a + funH(*b, *c, *d) + xStep + T[step]), S[step]);
+                } else {
+                    *a = *b + leftRotate((*a + funI(*b, *c, *d) + xStep + T[step]), S[step]);
+                }
 
-    tmp = d;
-    d = c;
-    c = b;
-    b = a;
-    a = tmp;
-}
+                tmp = d;
+                d = c;
+                c = b;
+                b = a;
+                a = tmp;
+            }
 
-mdBuffer.a += *a;
-mdBuffer.b += *b;
-mdBuffer.c += *c;
-mdBuffer.d += *d;
+            mdBuffer.a += *a;
+            mdBuffer.b += *b;
+            mdBuffer.c += *c;
+            mdBuffer.d += *d;
         }
-        if (mdBuffer.a == reinterpret_cast<uint32_t *>(digest)[0] &&
-            mdBuffer.b == reinterpret_cast<uint32_t *>(digest)[1] &&
-            mdBuffer.c == reinterpret_cast<uint32_t *>(digest)[2] &&
-            mdBuffer.d == reinterpret_cast<uint32_t *>(digest)[3]) {
+        if (mdBuffer.a == reinterpret_cast<uint32_t *>(DIGEST)[0] &&
+            mdBuffer.b == reinterpret_cast<uint32_t *>(DIGEST)[1] &&
+            mdBuffer.c == reinterpret_cast<uint32_t *>(DIGEST)[2] &&
+            mdBuffer.d == reinterpret_cast<uint32_t *>(DIGEST)[3]) {
 
-            memcpy(words, workingBuffer, lenght * sizeof(char));
-            reinterpret_cast<uint32_t *>(words)[0] += (blockIdx.x * 256) | threadIdx.x;
+            memcpy(word, workingBuffer, LENGTH * sizeof(char));
+            reinterpret_cast<uint32_t *>(word)[0] += (blockIdx.x * blockDim.x) | threadIdx.x;
             *kernel_end = true;
         }
         __syncthreads();
@@ -144,9 +148,9 @@ mdBuffer.d += *d;
                 int i = 4;
                 do {
                     tmp[i++]++;
-                } while (tmp[i] == 0 && i < lenght);
+                } while (tmp[i] == 0 && i < LENGTH);
                 done = true;
-                for (int i = 4; i < lenght; i++) {
+                for (int i = 4; i < LENGTH; i++) {
                     if (tmp[i] != 0) {
                         done = false;
                     }
